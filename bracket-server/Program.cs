@@ -1,3 +1,5 @@
+using UserManagement;
+using bracket_server.Routing;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
