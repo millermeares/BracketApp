@@ -9,6 +9,7 @@
         {
             _routes.Add(HttpRequestType.Post, new Dictionary<string, Delegate>());
             _routes.Add(HttpRequestType.Get, new Dictionary<string, Delegate>());
+            AddRoutes();
         }
         public abstract void AddRoutes();
 
@@ -30,7 +31,7 @@
         {
             foreach(string route in _routes[HttpRequestType.Post].Keys)
             {
-                app.MapGet(route, _routes[HttpRequestType.Post][route]);
+                app.MapPost(route, _routes[HttpRequestType.Post][route]);
             }
         }
 

@@ -18,11 +18,11 @@ function Login() {
     return (
         <div className="getting-in">
             <Form onSubmit={_onSubmit}>
-            <h1 className="jordan">Hi Jordan</h1>
-            <Form.Group controlId="formBasicUsername">
-                <Form.Control placeholder="enter username" onChange={(event) => setUsername(event.target.value)} value={username}>
-                </Form.Control>
-            </Form.Group>
+                <h1 className="jordan">Hi Jordan</h1>
+                <Form.Group controlId="formBasicUsername">
+                    <Form.Control placeholder="enter username" onChange={(event) => setUsername(event.target.value)} value={username}>
+                    </Form.Control>
+                </Form.Group>
                 <Form.Group controlId="formBasicPassword">
                     <Form.Control placeholder="enter password" type="password" onChange={(event) => setPw(event.target.value)} value={pw} ></Form.Control>
                 </Form.Group>

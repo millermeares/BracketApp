@@ -4,9 +4,13 @@ namespace bracket_server.Routing
 {
     public class UserEndpoints : EndpointManager
     {
-        public static User SignUp(SigningUpUser user)
+        public UserEndpoints() :base()
         {
-            return new User();
+
+        }
+        public static AuthToken SignUp(SigningUpUser user)
+        {
+            return new AuthToken();
         }
 
         public override void AddRoutes()

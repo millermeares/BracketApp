@@ -3,9 +3,9 @@ import Button from 'react-bootstrap/Button';
 import { InputGroup } from 'react-bootstrap';
 import {Link} from 'react-router-dom'
 import {useState} from 'react';
-function SignUp() {
-    
-
+import axios from 'axios';
+function SignUp({ setToken }) {
+    console.log("entering sign-in page");
     const [ form, setForm ] = useState({})
     const [ errors, setErrors ] = useState({})
     // todo: send request to server
@@ -16,9 +16,27 @@ function SignUp() {
             event.preventDefault();
             return;
         } 
+        // event.preventDefault();
 
         // now execute request.
         console.log(form);
+        executeSignUpRequest(form);
+    }
+
+    const executeSignUpRequest = (data) => {
+        // axios("/weatherforecast")
+        // .then(response => {
+        //     console.log(response.data);
+        // }).catch(error => {
+        //     console.log("Error fetching data: " + error);
+        // });
+        axios.post("/signup", data)
+        .then(response => {
+            console.log(response.data);
+            setToken(response.data.Token);
+        }).catch(error => {
+            console.log("Error fetching data: " + error);
+        })
     }
 
     const validateEmail = (email) => {
