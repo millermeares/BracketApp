@@ -10,8 +10,8 @@ import {useState} from 'react';
 function App(props) {
   // use state to check if logged in. if logged in, display dashboard. 
   // if not logged in, display login screen. 
-  const [token, setToken] = useState();
-  
+  const [token, setToken] = useState(null);
+  console.log(setToken);
   
 
   return (
@@ -19,7 +19,7 @@ function App(props) {
       <Routes>
         <Route path="/" element={<Home token={token} />} />
         <Route path="/home" element={<Home token={token} />} />
-        <Route path="/login" element={<GettingIn children={<Login setToken={setToken} />} />} />
+        <Route path="/login" element={<GettingIn children={<Login token={token} setToken={setToken} />} />} />
         <Route path="/signup" element={<GettingIn children={<SignUp setToken={setToken} />} />} />
         <Route path="/logout" element={<LoggedOut />} />
       </Routes>

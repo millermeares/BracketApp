@@ -3,20 +3,19 @@ import Button from 'react-bootstrap/Button'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Form from 'react-bootstrap/Form'
-import {useState} from 'react'
-import {BrowserRouter as Router, Link} from 'react-router-dom';
+import {useEffect, useState} from 'react'
+import {BrowserRouter as Router, Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
-function Login({setToken}) {
+function Login({token, setToken}) {
     const [form, setForm] = useState({});
-    
-    console.log("entering login");
-    //todo: send request to server
+    let navigate = useNavigate();
+
     const onSubmit = function() {
-        console.log(form);
         axios.post("/login", form)
             .then(response => {
-                setToken(response.data.Token);
+                setToken(response.data.token);
             }).catch(error => {
+                console.log(error);
                 console.log("error logging in: " + error)
             });
 
@@ -25,15 +24,35 @@ function Login({setToken}) {
 
     const setField = (field, value) => {
         setForm({
-          ...form,
-          [field]: value
+            ...form,
+            [field]: value
         })
-      }
+    }
 
+    const userIsLoggedIn = () => {
+        console.log(token);
+        return (token) ? true : false;
+    }
+
+    
+    useEffect(() => {
+        if (userIsLoggedIn()) {
+            console.log("user is logged in in login");
+            console.log(token);
+            navigate("../home/", { replace: false })
+            
+        }
+    })
+
+    const handleClick = () => {
+        navigate("../home/", {replace:false});
+    }
 
     //todo: forgot-password.
     return (
         <div className="getting-in">
+            <button onClick={handleClick}>Go home</button>
+
             <Form onSubmit={onSubmit}>
                 <h1 className="jordan">bracket app</h1>
                 <Form.Group controlId="formBasicUsername">
