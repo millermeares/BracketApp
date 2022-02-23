@@ -4,7 +4,7 @@ import { InputGroup } from 'react-bootstrap';
 import {Link} from 'react-router-dom'
 import {useState} from 'react';
 import axios from 'axios';
-function SignUp({ setToken }) {
+function SignUp() {
     console.log("entering sign-in page");
     const [ form, setForm ] = useState({})
     const [ errors, setErrors ] = useState({})
@@ -16,18 +16,13 @@ function SignUp({ setToken }) {
             event.preventDefault();
             return;
         } 
-        // event.preventDefault();
-
-        // now execute request.
-        console.log(form);
         executeSignUpRequest(form);
     }
 
     const executeSignUpRequest = (data) => {
         axios.post("/signup", data)
             .then(response => {
-                console.log(response.data);
-                setToken(response.data.Token);
+                //todo
             }).catch(error => {
                 console.log("Error fetching data: " + error);
             })

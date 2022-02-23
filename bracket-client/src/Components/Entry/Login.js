@@ -6,11 +6,12 @@ import Form from 'react-bootstrap/Form'
 import {useEffect, useState} from 'react'
 import {BrowserRouter as Router, Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
-function Login({token, setToken}) {
+function Login({setToken}) {
     const [form, setForm] = useState({});
     let navigate = useNavigate();
 
-    const onSubmit = function() {
+    const onSubmit = function(e) {
+        e.preventDefault();
         axios.post("/login", form)
             .then(response => {
                 setToken(response.data.token);
@@ -29,29 +30,9 @@ function Login({token, setToken}) {
         })
     }
 
-    const userIsLoggedIn = () => {
-        console.log(token);
-        return (token) ? true : false;
-    }
-
-    
-    useEffect(() => {
-        if (userIsLoggedIn()) {
-            console.log("user is logged in in login");
-            console.log(token);
-            navigate("../home/", { replace: false })
-            
-        }
-    })
-
-    const handleClick = () => {
-        navigate("../home/", {replace:false});
-    }
-
     //todo: forgot-password.
     return (
         <div className="getting-in">
-            <button onClick={handleClick}>Go home</button>
 
             <Form onSubmit={onSubmit}>
                 <h1 className="jordan">bracket app</h1>

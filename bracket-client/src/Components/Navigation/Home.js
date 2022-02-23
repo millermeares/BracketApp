@@ -7,18 +7,10 @@ import GettingIn from '../Entry/GettingIn'
 import Login from '../Entry/Login'
 import {useNavigate} from 'react-router-dom'
 function Home({token, children}) {
-    console.log("entering home");
-    let navigate = useNavigate();
 
-    const _userIsLoggedIn = function () {
-        return (token) ? true : false;
-    }
-    useEffect(() => {
-        if (!_userIsLoggedIn()) {
-            console.log("user is not logged in in home");
-            navigate("../login", { replace: false });
-        }
-    });
+    
+    
+
 
    
 
