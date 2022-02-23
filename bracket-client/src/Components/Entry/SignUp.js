@@ -24,19 +24,13 @@ function SignUp({ setToken }) {
     }
 
     const executeSignUpRequest = (data) => {
-        // axios("/weatherforecast")
-        // .then(response => {
-        //     console.log(response.data);
-        // }).catch(error => {
-        //     console.log("Error fetching data: " + error);
-        // });
         axios.post("/signup", data)
-        .then(response => {
-            console.log(response.data);
-            setToken(response.data.Token);
-        }).catch(error => {
-            console.log("Error fetching data: " + error);
-        })
+            .then(response => {
+                console.log(response.data);
+                setToken(response.data.Token);
+            }).catch(error => {
+                console.log("Error fetching data: " + error);
+            })
     }
 
     const validateEmail = (email) => {

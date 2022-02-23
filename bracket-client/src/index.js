@@ -3,14 +3,34 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+import {errorInterceptor} from './Components/Services/Interceptors/ErrorInterceptor'
+import { history } from './Components/Services/Helpers/History';
+import { render } from '@testing-library/react';
+errorInterceptor();
+
+ReactDOM.render(
+   <React.StrictMode>
+   <Router>
+      <App />
+    </Router>
+  </React.StrictMode>,
+   document.getElementById('root')
+ );
+
+// // If you want to start measuring performance in your app, pass a function
+// // to log results (for example: reportWebVitals(console.log))
+// // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// reportWebVitals();
+// startApp();
+// function startApp() {
+//   render(
+//     <React.StrictMode>
+//       <Router history={history}>
+//         <App />
+//       </Router>
+//     </React.StrictMode>,
+//     document.getElementById('root')
+//   )
+// }

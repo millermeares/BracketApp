@@ -13,9 +13,15 @@ namespace bracket_server.Routing
             return new AuthToken();
         }
 
+        public static AuthToken Login(LoggingInUser user)
+        {
+            return new AuthToken(); ;
+        }
+
         public override void AddRoutes()
         {
             AddPost("/signup", SignUp);
+            AddPost("/login", Login);
         }
     }
 }
