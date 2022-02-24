@@ -4,12 +4,11 @@ import Container from 'react-bootstrap/Container'
 function Dashboard() {
     let navigate = useNavigate();
     let logout = (e) => {
+        e.preventDefault();
         localStorage.clear();
-        navigate("/home");
     }
     return (
         <div className="dashboard">
-
             <Navbar bg="light">
                 <Container fluid>
                     <Nav className="me-auto">
