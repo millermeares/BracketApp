@@ -1,6 +1,12 @@
 import { Nav, Navbar } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container'
 function Dashboard() {
+    let navigate = useNavigate();
+    let logout = (e) => {
+        localStorage.clear();
+        navigate("/home");
+    }
     return (
         <div className="dashboard">
 
@@ -11,7 +17,7 @@ function Dashboard() {
                     </Nav>
                     <Nav>
                         <Navbar.Text className="justify-content-end">
-                            <a href="/logout">Logout</a>
+                            <button onClick={logout}>Logout</button>
                         </Navbar.Text>
                     </Nav>
                 </Container>

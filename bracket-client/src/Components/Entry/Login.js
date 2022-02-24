@@ -8,7 +8,6 @@ import {BrowserRouter as Router, Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 function Login({setToken}) {
     const [form, setForm] = useState({});
-    let navigate = useNavigate();
 
     const onSubmit = function(e) {
         e.preventDefault();

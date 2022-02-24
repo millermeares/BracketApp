@@ -5,15 +5,23 @@ import { BrowserRouter as Router, Link, Routes, Route, useNavigate } from 'react
 import SignUp from './Components/Entry/SignUp'
 import GettingIn from './Components/Entry/GettingIn'
 import Home from './Components/Navigation/Home'
-import LoggedOut from './Components/Entry/LoggedOut'
 import NothingHere from './Components/Navigation/NothingHere';
-import {useState} from 'react';
+import useToken from './Components/Services/UseToken';
+
 function App() {
-  const [token, setToken] = useState(null);
-  if(!token) {
+
+  const {token, setToken} = useToken();
+
+  let here = (token) ? true : false;
+  console.log(here);
+  console.log(token);
+  if (!token) {
+    console.log('are we returning this');
     return <GettingIn children={<Login setToken={setToken} />} />
   }
-
+  if (!token) {
+    console.log("sup");
+  }
 
   return (
     <div className="App">
@@ -21,7 +29,6 @@ function App() {
         <Route path="/" element={<Home token={token} />} />
         <Route path="/home" element={<Home token={token} />} />
         <Route path="/signup" element={<GettingIn children={<SignUp />} />} />
-        <Route path="/logout" element={<LoggedOut setToken={setToken}/>} />
         <Route path="/*" element={<NothingHere />} />
       </Routes>
     </div>
