@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 bracket-client/.cert/*
+bracket-server/appsettings.json
