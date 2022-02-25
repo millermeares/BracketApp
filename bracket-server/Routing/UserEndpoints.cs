@@ -1,4 +1,8 @@
-﻿using UserManagement;
+﻿using MillerAPI;
+using MillerAPI.DataAccess;
+using UserManagement;
+using UserManagement.UserDataAccess;
+using UserManagement.UserModels;
 
 namespace bracket_server.Routing
 {
@@ -8,14 +12,22 @@ namespace bracket_server.Routing
         {
 
         }
-        public static AuthToken SignUp(SigningUpUser user)
+        public static IResult SignUp(SigningUpUser user, IUserDAL user_access)
         {
-            return new AuthToken();
+            ValidationResult validation_result = user.Validate();
+            if(!validation_result.Valid)
+            {
+                return Results.Problem(validation_result.Message);
+            }
+            UserID id = user_access.InsertNewUser(user);
+            AuthToken token = user_access.GetAuthToken(id);
+            return Results.Ok(token);
         }
 
-        public static AuthToken Login(LoggingInUser user)
+        public static AuthToken Login(LoggingInUser user, IUserDAL user_access)
         {
-            return new AuthToken(); ;
+
+            return AuthToken.Make();
         }
 
         public override void AddRoutes()

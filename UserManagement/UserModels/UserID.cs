@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UserManagement
+namespace UserManagement.UserModels
 {
-    public class AuthToken
+    public class UserID
     {
-        public string Token { get; set; } = Guid.NewGuid().ToString();
+        public string ID { get; set; } = string.Empty;
     }
 }

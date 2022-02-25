@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UserManagement
+namespace MillerAPI
 {
-    public static class UserDAL
+    internal class StartHelpers
     {
-
+        
     }
 }

@@ -2,6 +2,7 @@
 {
     public abstract class EndpointManager
     {
+        
         public enum HttpRequestType { Post, Get }
         private Dictionary<HttpRequestType, Dictionary<string, Delegate>> _routes = new Dictionary<HttpRequestType, Dictionary<string, Delegate>>();
 
