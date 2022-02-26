@@ -18,9 +18,9 @@ namespace UserManagement
             return ValidationResult.MakeResult(Password == ConfirmPassword);
         }
 
-        internal PasswordSignUp PasswordToInsert()
+        internal Password PasswordToInsert()
         {
-            return PasswordSignUp.Make(Password);
+            return Authentication.Password.Make(Password);
         }
     }
 }

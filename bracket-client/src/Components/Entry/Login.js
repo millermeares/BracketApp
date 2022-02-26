@@ -4,20 +4,21 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Form from 'react-bootstrap/Form'
 import {useEffect, useState} from 'react'
-import {BrowserRouter as Router, Link, useNavigate} from 'react-router-dom';
+import {BrowserRouter as Router, Link, useNavigate, useLocation} from 'react-router-dom';
+import {useAuth } from './Auth';
 import axios from 'axios';
-function Login({setToken}) {
+function Login() {
     const [form, setForm] = useState({});
-
+    let navigate = useNavigate();
+    let auth = useAuth();
+    let location = useLocation();
+    let from = location.state?.from?.pathname || "/";
     const onSubmit = function(e) {
         e.preventDefault();
-        axios.post("/login", form)
-            .then(response => {
-                setToken(response.data.token);
-            }).catch(error => {
-                console.log(error);
-                console.log("error logging in: " + error)
-            });
+        
+        auth.signin(form, () => {
+            navigate(from, {replace: true});
+        });
 
         
     }

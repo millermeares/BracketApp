@@ -7,30 +7,42 @@ import GettingIn from './Components/Entry/GettingIn'
 import Home from './Components/Navigation/Home'
 import NothingHere from './Components/Navigation/NothingHere';
 import useToken from './Components/Services/UseToken';
-
+import Layout from './Components/Layout'
+import {RequireAuth, AuthProvider} from './Components/Entry/Auth';
 function App() {
 
-  const {token, setToken} = useToken();
+  const { token, setToken } = useToken();
 
-  let here = (token) ? true : false;
-  console.log(here);
-  console.log(token);
-  if (!token) {
-    console.log('are we returning this');
-    return <GettingIn children={<Login setToken={setToken} />} />
-  }
-  if (!token) {
-    console.log("sup");
-  }
+
+
 
   return (
     <div className="App">
-      <Routes>
-        <Route path="/" element={<Home token={token} />} />
-        <Route path="/home" element={<Home token={token} />} />
-        <Route path="/signup" element={<GettingIn children={<SignUp />} />} />
-        <Route path="/*" element={<NothingHere />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/login" element={<GettingIn children={<Login />} />} />
+            <Route path="/signup" element={<GettingIn children={<SignUp />} />} />
+
+            <Route
+              path="/home"
+              element={
+                <RequireAuth>
+                  <Home />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <RequireAuth>
+                  <Home />
+                </RequireAuth>
+              }
+            />
+          </Route>
+        </Routes>
+      </AuthProvider>
     </div>
   );
 }

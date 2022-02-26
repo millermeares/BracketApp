@@ -1,13 +1,19 @@
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { InputGroup } from 'react-bootstrap';
-import {Link} from 'react-router-dom'
+import {Link, useNavigate, useLocation} from 'react-router-dom'
 import {useState} from 'react';
 import axios from 'axios';
+import {useAuth} from './Auth';
 function SignUp() {
-    console.log("entering sign-in page");
     const [ form, setForm ] = useState({})
     const [ errors, setErrors ] = useState({})
+
+    let auth = useAuth();
+    let location = useLocation();
+    let navigate = useNavigate();
+    let from = location.state?.from?.pathname || "/";
+
     // todo: send request to server
     const _onSubmit = function(event) {
         const newErrors = findFormErrors();
@@ -16,17 +22,15 @@ function SignUp() {
             event.preventDefault();
             return;
         } 
-        executeSignUpRequest(form);
+        event.preventDefault();
+        auth.signup(form, () => {
+            navigate(from, {replace: true});
+        });
     }
+    
 
-    const executeSignUpRequest = (data) => {
-        axios.post("/signup", data)
-            .then(response => {
-                //todo
-            }).catch(error => {
-                console.log("Error fetching data: " + error);
-            })
-    }
+
+   
 
     const validateEmail = (email) => {
         return String(email)

@@ -9,5 +9,13 @@ namespace UserManagement.UserModels
     public class UserID
     {
         public string ID { get; set; } = string.Empty;
+        public UserID()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
+        public UserID(string id)
+        {
+            ID = id;
+        }
     }
 }

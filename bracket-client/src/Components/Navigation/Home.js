@@ -5,16 +5,8 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import GettingIn from '../Entry/GettingIn'
 import Login from '../Entry/Login'
-import {useNavigate} from 'react-router-dom'
-function Home({token, children}) {
-
-    
-    
-
-
-   
-
-      
+import {Routes, Route} from 'react-router-dom'
+function Home({token, setToken, children}) {
     return (
         <div className="home">
             <Dashboard /> 

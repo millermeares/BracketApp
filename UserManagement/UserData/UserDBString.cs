@@ -11,12 +11,12 @@ namespace UserManagement.UserDataAccess
         private static string _userSelectParams = "u.userID, u.passwordSalt, u.passwordHash, u.username, u.email";
         internal static string GetUserByUsername()
         {
-            return $"SELECT {_userSelectParams} FROM users u WHERE u.username=@username;";
+            return $"SELECT {_userSelectParams} FROM user u WHERE u.username=@username;";
         }
 
         internal static string GetUserById()
         {
-            return $"SELECT {_userSelectParams} FROM users u WHERE u.userID=@username;";
+            return $"SELECT {_userSelectParams} FROM user u WHERE u.userID=@username;";
         }
 
         internal static string InsertUser = 

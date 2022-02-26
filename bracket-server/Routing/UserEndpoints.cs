@@ -1,6 +1,7 @@
 ﻿using MillerAPI;
 using MillerAPI.DataAccess;
 using UserManagement;
+using UserManagement.Authentication;
 using UserManagement.UserDataAccess;
 using UserManagement.UserModels;
 
@@ -24,10 +25,15 @@ namespace bracket_server.Routing
             return Results.Ok(token);
         }
 
-        public static AuthToken Login(LoggingInUser user, IUserDAL user_access)
+        public static IResult Login(LoggingInUser user, IUserDAL user_access)
         {
-
-            return AuthToken.Make();
+            Password password = user_access.GetUserAuthenticationInfo(user);
+            if(!password.Match(user.Password))
+            {
+                return Results.Problem("No Match");
+            }
+            AuthToken token = user_access.GetAuthToken(password.AssociatedID);
+            return Results.Ok(token);
         }
 
         public override void AddRoutes()
