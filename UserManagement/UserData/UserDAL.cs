@@ -43,12 +43,11 @@ namespace UserManagement.UserDataAccess
             {
                 using DbCommand cmd = _dataAccess.GetCommand(UserDBString.GetAuthTokenForUser(15), conn, trans);
                 id.UserIDParameter(cmd);
-                cmd.AddParameter("@utc_now", DateTime.UtcNow);
                 cmd.AddParameter("@token", token_to_insert);
                 using DbDataReader reader = cmd.ExecuteReader();
                 if(reader.Read())
                 {
-                    string token = _dataAccess.GetString(reader, "token");
+                    string token = _dataAccess.GetString(reader, "tokenID");
                     DateTime createTime = _dataAccess.GetDatetime(reader, "createTime");
                     return new AuthToken(token, createTime);
                 }
@@ -57,9 +56,20 @@ namespace UserManagement.UserDataAccess
         }
 
         // not sure this is going to return this but we'll see
-        public AuthToken TokenIsValid(AuthToken token)
+        public UserID UserIDFromToken(AuthToken token)
         {
-            return AuthToken.Make();
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = _dataAccess.GetCommand(UserDBString.GetUserFromAuthToken, conn);
+                token.TokenParameter(cmd);
+                using DbDataReader reader = cmd.ExecuteReader();
+                if(reader.Read())
+                {
+                    string user = _dataAccess.GetString(reader, "_fk_user");
+                    return new UserID(user);
+                }
+                return UserID.MakeEmpty();
+            });
         }
 
         public Password GetUserAuthenticationInfo(LoggingInUser user)
@@ -71,7 +81,7 @@ namespace UserManagement.UserDataAccess
                 using DbDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
-                    string userID = _dataAccess.GetString(reader, "username");
+                    string userID = _dataAccess.GetString(reader, "userID");
                     string salt = _dataAccess.GetString(reader, "passwordSalt");
                     byte[] hash = _dataAccess.GetByteArray(reader, "passwordHash");
                     return new Password()

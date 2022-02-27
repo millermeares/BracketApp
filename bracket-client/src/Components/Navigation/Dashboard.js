@@ -1,4 +1,5 @@
 import { Nav, Navbar } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container'
 import { useAuth } from '../Entry/Auth';
@@ -16,7 +17,11 @@ function Dashboard() {
             <Navbar bg="light">
                 <Container fluid>
                     <Nav className="me-auto">
-                        <Nav.Link href="/home">Home</Nav.Link>
+                        <Link to="/home">Home</Link>
+                    </Nav>
+                    <Nav className="me-auto">
+                        <Link to="/home/makebracket">Make Bracket</Link>
+                        
                     </Nav>
                     <Nav>
                         <Navbar.Text className="justify-content-end">

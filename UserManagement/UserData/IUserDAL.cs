@@ -8,7 +8,7 @@ namespace UserManagement.UserDataAccess
     {
         UserID InsertNewUser(SigningUpUser user);
         AuthToken GetAuthToken(UserID id);
-        AuthToken TokenIsValid(AuthToken token);
+        UserID UserIDFromToken(AuthToken token);
         Password GetUserAuthenticationInfo(LoggingInUser user);
     }
 }

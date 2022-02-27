@@ -37,5 +37,10 @@ namespace UserManagement.UserDataAccess
         {
             AddParameter(cmd, "@username", user.Username);
         }
+
+        public static void TokenParameter(this AuthToken token, DbCommand cmd)
+        {
+            AddParameter(cmd, "@token", token.Token);
+        }
     }
 }

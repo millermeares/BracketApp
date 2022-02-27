@@ -21,5 +21,10 @@ namespace UserManagement.UserModels
         {
             return string.IsNullOrEmpty(ID);
         }
+
+        public static UserID MakeEmpty()
+        {
+            return new UserID(string.Empty);
+        }
     }
 }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React from 'react';
 import { useBootstrapPrefix } from 'react-bootstrap/esm/ThemeProvider';
-import { Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 let AuthContext = React.createContext(!null);
 export function useAuth() {
     return React.useContext(AuthContext);
@@ -27,13 +27,14 @@ export function AuthStatus() {
     )
 }
 
-export function RequireAuth({children}) {
+export function RequireAuth() {
     let auth = useAuth();
     let location = useLocation();
     if(!auth.token) {
+        console.log("no token: " + auth.token);
         return <Navigate to="/login" state={{from:location}} replace />
     }
-    return children;
+    return <Outlet />
 }
 
 export function AuthProvider({ children }) {
