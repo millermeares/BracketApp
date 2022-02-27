@@ -3,7 +3,6 @@ import React from 'react';
 import { useBootstrapPrefix } from 'react-bootstrap/esm/ThemeProvider';
 import { Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
 let AuthContext = React.createContext(!null);
-
 export function useAuth() {
     return React.useContext(AuthContext);
 }
@@ -11,8 +10,7 @@ export function useAuth() {
 export function AuthStatus() {
     let auth = useAuth();
     let navigate = useNavigate();
-    if(!auth.user) {
-
+    if(!auth.token) {
         return (
             <div>
                 {/* <p>You are not logged in.</p>
@@ -25,21 +23,14 @@ export function AuthStatus() {
         )
     }
     return (
-        <p>
-            Welcome {auth.user}!
-            <button onClick={() => {
-                auth.signout(() => navigate("/"));
-            }}
-            >
-                Sign Out</button>
-        </p>
+        <div></div>
     )
 }
 
 export function RequireAuth({children}) {
     let auth = useAuth();
     let location = useLocation();
-    if(!auth.user) {
+    if(!auth.token) {
         return <Navigate to="/login" state={{from:location}} replace />
     }
     return children;
@@ -50,7 +41,9 @@ export function AuthProvider({ children }) {
     let signin = (logginInForm, callback) => {
         axios.post("/login", logginInForm)
             .then(response => {
+                console.log(JSON.stringify(response));
                 setToken(response.data.token);
+                localStorage.setItem("token", response.data.token);
                 callback();
             }).catch(error => {
                 console.log(error);
@@ -72,6 +65,7 @@ export function AuthProvider({ children }) {
     let signup = (signUpForm, callback) => {
         axios.post("signup", signUpForm)
         .then(response => {
+            console.log(JSON.stringify(response));
             setToken(response.data.token);
             callback();
         }).catch(error => {

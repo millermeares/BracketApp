@@ -1,11 +1,15 @@
 import { Nav, Navbar } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container'
+import { useAuth } from '../Entry/Auth';
 function Dashboard() {
     let navigate = useNavigate();
+    let auth = useAuth();
     let logout = (e) => {
         e.preventDefault();
-        localStorage.clear();
+        auth.signout(() => {
+            navigate("...");
+        });
     }
     return (
         <div className="dashboard">

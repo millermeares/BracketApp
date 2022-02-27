@@ -6,16 +6,9 @@ import SignUp from './Components/Entry/SignUp'
 import GettingIn from './Components/Entry/GettingIn'
 import Home from './Components/Navigation/Home'
 import NothingHere from './Components/Navigation/NothingHere';
-import useToken from './Components/Services/UseToken';
 import Layout from './Components/Layout'
 import {RequireAuth, AuthProvider} from './Components/Entry/Auth';
 function App() {
-
-  const { token, setToken } = useToken();
-
-
-
-
   return (
     <div className="App">
       <AuthProvider>

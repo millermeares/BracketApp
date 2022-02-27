@@ -23,5 +23,23 @@ namespace UserManagement.UserDataAccess
             
             @"INSERT user(userID, passwordSalt, passwordHash, username, email)
             VALUES(@user, @passwordSalt, @passwordHash, @username, @email);";
+
+        private static string _getAuthTokenForUserBase = 
+            @"
+        UPDATE user_token SET loggedOutTime=now(6)
+        WHERE _fk_user=@user AND DATE_SUB(UTC_TIMESTAMP(), INTERVAL {0} MINUTE) > expireTime AND revokedTime IS NULL;
+        INSERT INTO user_token(_fk_user, tokenID, createTime)
+        VALUES(@user, @token, @utc_now);
+        SELECT _fk_user, tokenID, expireTime, revokedTime FROM user_token 
+        WHERE _fk_user=@user AND DATE_SUB(UTC_timestamp(), INTERVAL {0} MINUTE) > expireTime AND revokedTime IS NULL
+        ORDER BY expireTime DESC 
+        LIMIT 1;
+            ";
+
+        internal static string GetAuthTokenForUser(int minute_interval)
+        {
+            return string.Format(_getAuthTokenForUserBase, minute_interval);
+        }
+        
     }
 }

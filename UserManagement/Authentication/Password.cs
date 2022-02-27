@@ -19,7 +19,22 @@ namespace UserManagement.Authentication
         public bool Match(string password)
         {
             byte[] auth_attempt_hash = MakeHash(password, Guid.Parse(Salt).ToByteArray());
-            return Hash == auth_attempt_hash;
+            return ByteArrayEquality(Hash, auth_attempt_hash);
+        }
+
+        private static bool ByteArrayEquality(byte[] array1, byte[] array2)
+        {
+            if (array1.Length != array2.Length) return false;
+            for(int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i]) return false;
+            }
+            return true;
+        }
+
+        public bool IsEmpty()
+        {
+            return AssociatedID.IsEmpty();
         }
 
 

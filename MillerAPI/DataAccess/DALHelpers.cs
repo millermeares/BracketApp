@@ -11,7 +11,7 @@ namespace MillerAPI.DataAccess
     {
         public static DbParameter MakeParameter(string key, string value)
         {
-            return new MySql.Data.MySqlClient.MySqlParameter(key, value);
+            return new MySqlParameter(key, value);
         }
 
         public static DbParameter MakeParameter(string key, byte[] value)

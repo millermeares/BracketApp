@@ -13,6 +13,7 @@ function Login() {
     let auth = useAuth();
     let location = useLocation();
     let from = location.state?.from?.pathname || "/";
+    console.log(from);
     const onSubmit = function(e) {
         e.preventDefault();
         
@@ -45,8 +46,6 @@ function Login() {
                 <Button type="submit" variant="outline-primary">Submit</Button>
             </Form>
             <Link to="/signup">Don't have an account? Sign up here.</Link>
-            <br />
-            <Link to="/">Shortcut link for development</Link>
         </div>
     );
 }

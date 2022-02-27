@@ -17,5 +17,9 @@ namespace UserManagement.UserModels
         {
             ID = id;
         }
+        public bool IsEmpty()
+        {
+            return string.IsNullOrEmpty(ID);
+        }
     }
 }

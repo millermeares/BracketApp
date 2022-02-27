@@ -11,7 +11,7 @@ namespace UserManagement.UserDataAccess
 {
     internal static class DBHelpers
     {
-        private static void AddParameter(this DbCommand cmd, string key, string value)
+        public static void AddParameter(this DbCommand cmd, string key, object value)
         {
             cmd.Parameters.Add(MakeParameter(key, value));
         }

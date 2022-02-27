@@ -28,9 +28,13 @@ namespace bracket_server.Routing
         public static IResult Login(LoggingInUser user, IUserDAL user_access)
         {
             Password password = user_access.GetUserAuthenticationInfo(user);
+            if(password.IsEmpty())
+            {
+                return ErrorResult("account not found");
+            }
             if(!password.Match(user.Password))
             {
-                return Results.Problem("No Match");
+                return ErrorResult("bad password");
             }
             AuthToken token = user_access.GetAuthToken(password.AssociatedID);
             return Results.Ok(token);

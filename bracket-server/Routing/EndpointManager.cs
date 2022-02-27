@@ -54,6 +54,13 @@
             }
             _routes[requestType].Add(route, func);
         }
+
+        protected static IResult ErrorResult(string message)
+        {
+            Dictionary<string, string[]> errors = new Dictionary<string, string[]>();
+            errors.Add("Error", new string[] {message});
+            return Results.ValidationProblem(errors);
+        }
         
     }
 }

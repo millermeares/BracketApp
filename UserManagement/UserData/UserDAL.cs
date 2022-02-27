@@ -38,9 +38,21 @@ namespace UserManagement.UserDataAccess
 
         public AuthToken GetAuthToken(UserID id)
         {
-            return _dataAccess.DoQuery(conn =>
+            string token_to_insert = Guid.NewGuid().ToString();
+            return _dataAccess.DoTransaction((conn, trans) =>
             {
-                return AuthToken.Make();
+                using DbCommand cmd = _dataAccess.GetCommand(UserDBString.GetAuthTokenForUser(15), conn, trans);
+                id.UserIDParameter(cmd);
+                cmd.AddParameter("@utc_now", DateTime.UtcNow);
+                cmd.AddParameter("@token", token_to_insert);
+                using DbDataReader reader = cmd.ExecuteReader();
+                if(reader.Read())
+                {
+                    string token = _dataAccess.GetString(reader, "token");
+                    DateTime createTime = _dataAccess.GetDatetime(reader, "createTime");
+                    return new AuthToken(token, createTime);
+                }
+                return AuthToken.MakeEmpty();
             });
         }
 
