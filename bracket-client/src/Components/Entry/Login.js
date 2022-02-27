@@ -13,15 +13,12 @@ function Login() {
     let auth = useAuth();
     let location = useLocation();
     let from = location.state?.from?.pathname || "/";
-    console.log(from);
     const onSubmit = function(e) {
         e.preventDefault();
         
         auth.signin(form, () => {
             navigate(from, {replace: true});
         });
-
-        
     }
 
     const setField = (field, value) => {
@@ -34,7 +31,6 @@ function Login() {
     //todo: forgot-password.
     return (
         <div className="getting-in">
-
             <Form onSubmit={onSubmit}>
                 <h1 className="jordan">bracket app</h1>
                 <Form.Group controlId="formBasicUsername">

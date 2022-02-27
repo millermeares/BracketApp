@@ -31,7 +31,6 @@ export function RequireAuth() {
     let auth = useAuth();
     let location = useLocation();
     if(!auth.token) {
-        console.log("no token: " + auth.token);
         return <Navigate to="/login" state={{from:location}} replace />
     }
     return <Outlet />

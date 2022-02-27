@@ -21,7 +21,6 @@ function Dashboard() {
                     </Nav>
                     <Nav className="me-auto">
                         <Link to="/home/makebracket">Make Bracket</Link>
-                        
                     </Nav>
                     <Nav>
                         <Navbar.Text className="justify-content-end">
