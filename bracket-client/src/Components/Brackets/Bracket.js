@@ -1,4 +1,6 @@
-function Bracket(props) {
+import Game from './Game'
+import Team from './Game'
+function Bracket({id, name, eventStart, eventEnd, championshipGame}) {
     // data structure: 
     // bracket
         // bracket name
@@ -24,10 +26,15 @@ function Bracket(props) {
         // pass the following function to child games:
             // setWinner, which would set the winner of the child game. setWinner would control the participants in the game.
         
-
+    console.log(id);
 
     // ok but how do i programmatically determine the quadrants? 
-
+    return (
+        <div className="bracket">
+            <h2>Bracket {name}</h2>
+            <Game {...championshipGame} />
+        </div>
+    )
     
     
 }

@@ -11,10 +11,7 @@
         public TournamentCompetitor? Winner { get; set; } = null;
         
         
-        internal void MakeChildGames()
-        {
-            LeftGame = new Game();
-        }
+        
 
         internal void SkeletonChildrenGames(int iterations)
         {

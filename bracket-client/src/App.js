@@ -8,7 +8,6 @@ import Home from './Components/Navigation/Home'
 import NothingHere from './Components/Navigation/NothingHere';
 import Layout from './Components/Layout'
 import { RequireAuth, AuthProvider } from './Components/Entry/Auth';
-import MakeBracket from './Components/Brackets/MakeBracket';
 import FakeTournament from './Components/Brackets/FakeTournament';
 function App() {
 
@@ -23,7 +22,6 @@ let home_element = <Home />
             <Route element={<RequireAuth />}>
               <Route index element={home_element} />
               <Route path="home" element={home_element}>
-                <Route path="makebracket" element={<MakeBracket />} />
                 <Route path="faketournament" element={<FakeTournament />} />
               </Route>
             </Route>

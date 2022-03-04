@@ -20,9 +20,6 @@ function Dashboard() {
                         <Link to="/home">Home</Link>
                     </Nav>
                     <Nav className="me-auto">
-                        <Link to="/home/makebracket">Make Bracket</Link>
-                    </Nav>
-                    <Nav className="me-auto">
                         <Link to="/home/faketournament">Fake Tournament</Link>
                     </Nav>
                     <Nav>
