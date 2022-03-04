@@ -27,5 +27,3 @@ CREATE TABLE error_log (
     message VARCHAR(1000),
     callstack VARCHAR(1000)
 );
-
-select * from user;

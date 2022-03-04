@@ -11,12 +11,11 @@ using UserManagement.UserModels;
 using static UserManagement.UserDataAccess.DBHelpers;
 namespace UserManagement.UserDataAccess
 {
-    public class UserDAL : IUserDAL
+    public class UserDAL : BaseDAL, IUserDAL
     {
-        private readonly IDataAccess _dataAccess;
-        public UserDAL(IDataAccess dataAccess)
+        public UserDAL(IDataAccess dataAccess) : base(dataAccess)
         {
-            _dataAccess = dataAccess;
+            
         }
 
         public UserID InsertNewUser(SigningUpUser user)
@@ -24,7 +23,7 @@ namespace UserManagement.UserDataAccess
             Password password = user.PasswordToInsert();
             return _dataAccess.DoQuery(conn =>
             {
-                using DbCommand cmd = _dataAccess.GetCommand(UserDBString.InsertUser, conn);
+                using DbCommand cmd = GetCommand(UserDBString.InsertUser, conn);
                 user.SigningUpParameters(cmd);
                 password.PasswordParameters(cmd);
                 int rows = cmd.ExecuteNonQuery();
@@ -41,14 +40,14 @@ namespace UserManagement.UserDataAccess
             string token_to_insert = Guid.NewGuid().ToString();
             return _dataAccess.DoTransaction((conn, trans) =>
             {
-                using DbCommand cmd = _dataAccess.GetCommand(UserDBString.GetAuthTokenForUser(15), conn, trans);
+                using DbCommand cmd = GetCommand(UserDBString.GetAuthTokenForUser(15), conn, trans);
                 id.UserIDParameter(cmd);
                 cmd.AddParameter("@token", token_to_insert);
                 using DbDataReader reader = cmd.ExecuteReader();
                 if(reader.Read())
                 {
-                    string token = _dataAccess.GetString(reader, "tokenID");
-                    DateTime createTime = _dataAccess.GetDatetime(reader, "createTime");
+                    string token = GetString(reader, "tokenID");
+                    DateTime createTime = GetDatetime(reader, "createTime");
                     return new AuthToken(token, createTime);
                 }
                 return AuthToken.MakeEmpty();
@@ -60,12 +59,12 @@ namespace UserManagement.UserDataAccess
         {
             return _dataAccess.DoQuery(conn =>
             {
-                using DbCommand cmd = _dataAccess.GetCommand(UserDBString.GetUserFromAuthToken, conn);
+                using DbCommand cmd = GetCommand(UserDBString.GetUserFromAuthToken, conn);
                 token.TokenParameter(cmd);
                 using DbDataReader reader = cmd.ExecuteReader();
                 if(reader.Read())
                 {
-                    string user = _dataAccess.GetString(reader, "_fk_user");
+                    string user = GetString(reader, "_fk_user");
                     return new UserID(user);
                 }
                 return UserID.MakeEmpty();
@@ -76,14 +75,14 @@ namespace UserManagement.UserDataAccess
         {
             return _dataAccess.DoQuery(conn =>
             {
-                using DbCommand cmd = _dataAccess.GetCommand(UserDBString.GetUserByUsername(), conn);
+                using DbCommand cmd = GetCommand(UserDBString.GetUserByUsername(), conn);
                 user.LoggingInUserParameters(cmd);
                 using DbDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
-                    string userID = _dataAccess.GetString(reader, "userID");
-                    string salt = _dataAccess.GetString(reader, "passwordSalt");
-                    byte[] hash = _dataAccess.GetByteArray(reader, "passwordHash");
+                    string userID = GetString(reader, "userID");
+                    string salt = GetString(reader, "passwordSalt");
+                    byte[] hash = GetByteArray(reader, "passwordHash");
                     return new Password()
                     {
                         AssociatedID = new UserID(userID),

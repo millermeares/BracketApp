@@ -37,7 +37,9 @@ export function RequireAuth() {
 }
 
 export function AuthProvider({ children }) {
-    let [token, setToken] = React.useState(null);
+    let storage_token = localStorage.getItem("token");
+    let [token, setToken] = React.useState(storage_token);
+
     let signin = (logginInForm, callback) => {
         axios.post("/login", logginInForm)
             .then(response => {
@@ -55,6 +57,7 @@ export function AuthProvider({ children }) {
         axios.post("/logout", token)
         .then(response => {
             setToken(null);
+            localStorage.clear();
             callback();
         }).catch(error => {
             console.log(error);
@@ -67,6 +70,7 @@ export function AuthProvider({ children }) {
         .then(response => {
             console.log(JSON.stringify(response));
             setToken(response.data.token);
+            localStorage.setItem("token", response.data.token);
             callback();
         }).catch(error => {
             console.log(error);

@@ -11,10 +11,8 @@ import { render } from '@testing-library/react';
 errorInterceptor();
 
 ReactDOM.render(
-   <React.StrictMode>
    <Router>
       <App />
-    </Router>
-  </React.StrictMode>,
+    </Router>,
    document.getElementById('root')
  );

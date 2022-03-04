@@ -2,6 +2,7 @@ using MillerAPI;
 using MillerAPI.DataAccess;
 using bracket_server.Routing;
 using UserManagement.UserDataAccess;
+using bracket_server.Tournaments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IDataAccess, DataAccessor>();
 builder.Services.AddSingleton<IUserDAL, UserDAL>();
+builder.Services.AddSingleton<ITournamentDAL, TournamentDAL>();
 
 var app = builder.Build();
 
@@ -25,8 +27,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
-UserEndpoints endpoints = new UserEndpoints();
-endpoints.RegisterRoutes(app);
+UserEndpoints user_endpoints = new UserEndpoints();
+BracketEndpoints bracket_endpoints = new BracketEndpoints();
+TournamentEndpoints tournament_endpoints = new TournamentEndpoints();
+user_endpoints.RegisterRoutes(app);
+bracket_endpoints.RegisterRoutes(app);
+tournament_endpoints.RegisterRoutes(app);
 
 app.Run();
 

@@ -22,6 +22,9 @@ function Dashboard() {
                     <Nav className="me-auto">
                         <Link to="/home/makebracket">Make Bracket</Link>
                     </Nav>
+                    <Nav className="me-auto">
+                        <Link to="/home/faketournament">Fake Tournament</Link>
+                    </Nav>
                     <Nav>
                         <Navbar.Text className="justify-content-end">
                             <button onClick={logout}>Logout</button>
