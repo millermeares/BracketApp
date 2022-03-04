@@ -39,7 +39,7 @@
             List<Game> games = new List<Game>();
             for(int quad = 0; quad < 4; quad++)
             {
-                games.AddRange(GetFakeQuadGames(quad, games_per_quad));
+                games.AddRange(GetFakeQuadGames(quad+1, games_per_quad));
             }
             return games;
         }
