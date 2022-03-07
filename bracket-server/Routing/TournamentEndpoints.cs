@@ -8,9 +8,16 @@ namespace bracket_server.Routing
             Tournament tournament = FakeTournamentData.MakeFakeNCAATournament();
             return Results.Ok(tournament);
         }
+        public static IResult FakeTournamentSkeleton()
+        {
+            Tournament tournament = FakeTournamentData.MakeFakeNCAATournamentSkeleton();
+            return Results.Ok(tournament);
+        }
         public override void AddRoutes()
         {
             AddGet("/home/faketournament", FakeTournament);
+            AddGet("/home/faketournamentskeleton", FakeTournamentSkeleton);
+
         }
     }
 }

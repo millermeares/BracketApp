@@ -1,7 +1,10 @@
-function Team({name, id, seed}) {
+import '../../Styling/BracketCSS.css'
+function Team({name, id, seed, renderSeed, handleTeamClicked}) {
+
     return (
-        <div className="team">
-            <p>{name}</p>
+        <div className="team" onClick={() => handleTeamClicked(id)}>
+            <span>{renderSeed ? seed : null}</span>
+            <span>{name}</span>
         </div>
     )
 }

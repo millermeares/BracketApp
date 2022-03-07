@@ -1,31 +1,44 @@
 import {useState} from 'react';
 import Team from './Team';
-const makeTeamComponent = (team, handleSetWinner) => {
-    // ok what is teh best way to pass props ya know?
-    return <Team {...team} />
-}
+import '../../Styling/BracketCSS.css'
 
 
-function Game({competitor1, competitor2, id, leftGame, rightGame, winner}) {
-    // data structure:
-    // round
-    // division
-    // competitor1
-    // competitor2
-    // winner
-    
+function Game({competitor1, competitor2, id, leftGame, rightGame, className, inBetweenComponent, renderSeed, handleSetWinner}) {
+    // for depth: 
+    // 1 is final 4
+    // 2 is elite 8
+    // 3 is sweet 16
+    // 4 is round of 32
+    // 5 is seed round. 
+    // use this to determine the amount of spaces, etc.
+    let handleTeamClicked = (teamId) => {
+        handleSetWinner(id, teamId);
+    }
+    let teamComponent = (team) => {
+        let props = {...team, renderSeed: renderSeed, handleTeamClicked: handleTeamClicked};
+        return <Team {...props} />
+    }
+
     
     
     // use the round, division to style. need to change the winner on team click. 
     // so that's important. 
 
-    let team_1_component = makeTeamComponent(competitor1);
-    let team_2_component = makeTeamComponent(competitor2);
+    // this first li needs to have a game-left or game-right tag. but, for now, i'm going to try to render that in Bracket.
+    // passing the inbetweencomponent if necessary.
     return (
-        <div className="game">
-            <div className="top_game">{team_1_component}</div>
-            <div className="bottom_game">{team_2_component}</div>
-        </div>
+        <li className={className}>
+            <ul className="game-wrapper">
+                <li className="game-top">
+                    {teamComponent(competitor1)}
+                </li>
+                {inBetweenComponent}
+                <li className="game-bottom">
+                    {teamComponent(competitor2)}
+                </li>
+            </ul>
+
+        </li>
     )
 }
 

@@ -1,11 +1,11 @@
 import axios from 'axios';
 import {useEffect, useState} from 'react';
-import Bracket from './Bracket'
+import NCAABracket from './NCAABracket'
 function FakeTournament() {
     let [bracket, setBracket] = useState(null);
     useEffect(() => {
         if (!bracket) {
-            axios.get("faketournament").then(response => {
+            axios.get("faketournamentskeleton").then(response => {
                 console.log(response.data);
                 setBracket(response.data);
             }).catch(err => {
@@ -21,7 +21,7 @@ function FakeTournament() {
     }
     return (
         <div>
-            <Bracket {...bracket} />
+            <NCAABracket {...bracket} />
         </div>
     );
 }

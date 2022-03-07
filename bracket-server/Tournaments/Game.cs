@@ -32,14 +32,13 @@
 
         internal static Game MakeParentGame(Game game1, Game game2)
         {
-            if(game1.Winner == null || game2.Winner == null) throw new ArgumentException("null winner");
             Game parent_game = new Game()
             {
                 ID = Guid.NewGuid().ToString(),
                 LeftGame = game1,
                 RightGame = game2,
-                Competitor1 = game1.Winner,
-                Competitor2 = game2.Winner
+                Competitor1 = game1?.Winner,
+                Competitor2 = game2?.Winner
             };
             return parent_game;
         }
