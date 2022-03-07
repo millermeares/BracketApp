@@ -1,8 +1,13 @@
-function Finalist({name, id, className, nameClass}) {
+function Finalist({ name, id, className, nameClass, handleSetWinner }) {
     return (
         <ul className={className}>
             <li className='spacer'>&nbsp;</li>
-            <li className={nameClass}>{name}</li>
+            <li className={nameClass}>
+                <div onClick={() => (handleSetWinner) ? handleSetWinner(id) : {}}>
+                    <span>{name}</span>
+                </div>
+                
+            </li>
             <li className='spacer'>&nbsp;</li>
         </ul>
     )

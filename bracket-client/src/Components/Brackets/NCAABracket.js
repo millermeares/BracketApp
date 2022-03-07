@@ -56,21 +56,18 @@ function getParentGame(parentGame, id) {
 
 
 function getTeamInGameMatchingId(game, id) {
-    if(game.competitor1.id == id) return game.competitor1;
-    if(game.competitor2.id == id) return game.competitor2;
+    if(game.competitor1 != null && game.competitor1.id == id) return game.competitor1;
+    if(game.competitor2 != null && game.competitor2.id == id) return game.competitor2;
     return null;
 }
 
 function handleRemoveNonWinners(champGame, gameId) {
     let parentGame = getParentGame(champGame, gameId);
-    console.log("no parent game");
     if (!parentGame) return;
     if (parentGame.competitor1 != parentGame.leftGame.competitor1 && parentGame.competitor1 != parentGame.leftGame.competitor2) {
-        console.log("removing competitor 1");
         parentGame.competitor1 = null;
     }
     if (parentGame.competitor2 != parentGame.rightGame.competitor1 && parentGame.competitor2 != parentGame.rightGame.competitor2) {
-        console.log("removing competitor 2");
         parentGame.competitor2 = null;
     }
     handleRemoveNonWinners(champGame, parentGame.id);
@@ -81,26 +78,36 @@ function handleRemoveNonWinners(champGame, gameId) {
 function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
     let handleSetWinner = (gameId, winnerId) => {
+        console.log(champGame);
         let parentGame = getParentGame(champGame, gameId);
         let winner_is_top = parentGame.leftGame.id == gameId;
         if(winner_is_top) {
             let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.leftGame, winnerId);
+            console.log(team_to_set_as_competitor);
+            console.log(parentGame.competitor1);
             if(team_to_set_as_competitor == parentGame.competitor1) {
-                console.log("winner already top");
                 return;
+            }
+            if(parentGame.competitor1 == champGame.winner) {
+                champGame.winner = null; // handle clearing winner too.
             }
             parentGame.competitor1 = team_to_set_as_competitor;
         } else {
             let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.rightGame, winnerId);
             if(team_to_set_as_competitor == parentGame.competitor2) {
-                console.log("winner already bottom");
                 return;
+            }
+            if(parentGame.competitor2 == champGame.winner) {
+                champGame.winner = null; // handle clearing winner too.
             }
             parentGame.competitor2 = team_to_set_as_competitor;
         }
-        console.log("this is parent gmae. now removing non-winners");
-        console.log(parentGame);
         handleRemoveNonWinners(champGame, gameId);
+        setChampionshipGame({...champGame});
+    }
+
+    let handleSetChampWinner = (winnerId) => {
+        champGame.winner = getTeamInGameMatchingId(champGame, winnerId);
         setChampionshipGame({...champGame});
     }
 
@@ -142,12 +149,12 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
     }
 
     let makeFinalist1 = (team) => {
-        let props = {...team, className: "round semi-final", nameClass: "game-left game-top"}
+        let props = {...team, className: "round semi-final", nameClass: "game-left game-top", handleSetWinner: handleSetChampWinner}
         return <Finalist {...props}/>
     }
 
     let makeFinalist2 = (team) => {
-        let props = {...team, className: "round semi-final", nameClass: "game-right game-top"}
+        let props = {...team, className: "round semi-final", nameClass: "game-right game-top", handleSetWinner: handleSetChampWinner}
         return <Finalist {...props}/>
     }
 
@@ -155,7 +162,6 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
         let props = {...team, className: "round finals", nameClass: "game final"}
         return <Finalist {...props}/>
     }
-    
 
     return (
         <div className="tournament">
@@ -179,9 +185,9 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
                 {makeRoundComponents(firstHalf(semi_finals_games), true, false, true)}
             </ul>
 
-            {makeFinalist1(champGame.leftGame)}
+            {makeFinalist1(champGame.competitor1)}
             {makeWinner(champGame.winner)}
-            {makeFinalist2(champGame.rightGame)}
+            {makeFinalist2(champGame.competitor2)}
 
             <ul className='round round-4'>
                 {makeRoundComponents(secondHalf(semi_finals_games), true, false, true)}
@@ -198,11 +204,8 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
             <ul className='round seed'>
                 {makeRoundComponents(secondHalf(seed_games), true, true, false)}
             </ul>
-
         </div>
     )
-    
-    
 }
 
 export default NCAABracket;
