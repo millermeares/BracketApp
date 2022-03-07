@@ -78,13 +78,10 @@ function handleRemoveNonWinners(champGame, gameId) {
 function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
     let handleSetWinner = (gameId, winnerId) => {
-        console.log(champGame);
         let parentGame = getParentGame(champGame, gameId);
         let winner_is_top = parentGame.leftGame.id == gameId;
         if(winner_is_top) {
             let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.leftGame, winnerId);
-            console.log(team_to_set_as_competitor);
-            console.log(parentGame.competitor1);
             if(team_to_set_as_competitor == parentGame.competitor1) {
                 return;
             }
