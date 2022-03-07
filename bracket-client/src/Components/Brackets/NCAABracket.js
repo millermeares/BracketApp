@@ -64,21 +64,16 @@ function getTeamInGameMatchingId(game, id) {
 function handleRemoveNonWinners(champGame, gameId) {
     let parentGame = getParentGame(champGame, gameId);
     console.log("no parent game");
-    if(!parentGame) return;
-    let changed = false;
-    if(parentGame.competitor1 != parentGame.leftGame.competitor1 && parentGame.competitor1 != parentGame.leftGame.competitor2) {
+    if (!parentGame) return;
+    if (parentGame.competitor1 != parentGame.leftGame.competitor1 && parentGame.competitor1 != parentGame.leftGame.competitor2) {
         console.log("removing competitor 1");
         parentGame.competitor1 = null;
-        changed = true;
     }
-    if(parentGame.competitor2 != parentGame.rightGame.competitor1 && parentGame.competitor2 != parentGame.rightGame.competitor2) {
+    if (parentGame.competitor2 != parentGame.rightGame.competitor1 && parentGame.competitor2 != parentGame.rightGame.competitor2) {
         console.log("removing competitor 2");
         parentGame.competitor2 = null;
-        changed = true;
     }
-    if(changed) {
-        handleRemoveNonWinners(champGame, parentGame.id);
-    }
+    handleRemoveNonWinners(champGame, parentGame.id);
 
 }
 
