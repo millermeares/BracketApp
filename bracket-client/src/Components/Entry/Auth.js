@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from '../Services/api'
 import React from 'react';
 import { useBootstrapPrefix } from 'react-bootstrap/esm/ThemeProvider';
 import { Navigate, useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
@@ -9,19 +9,7 @@ export function useAuth() {
 
 export function AuthStatus() {
     let auth = useAuth();
-    let navigate = useNavigate();
-    if(!auth.token) {
-        return (
-            <div>
-                {/* <p>You are not logged in.</p>
-                <Link to="/login">Login</Link>
-                <br />
-                <Link to="/signup">Sign Up</Link> */}
-            </div>
-            
-            
-        )
-    }
+    
     return (
         <div></div>
     )
@@ -41,7 +29,7 @@ export function AuthProvider({ children }) {
     let [token, setToken] = React.useState(storage_token);
 
     let signin = (logginInForm, callback) => {
-        axios.post("/login", logginInForm)
+        api.post("/login", logginInForm)
             .then(response => {
                 console.log(JSON.stringify(response));
                 setToken(response.data.token);
@@ -54,11 +42,11 @@ export function AuthProvider({ children }) {
     }
 
     let signout = (callback) => {
-        axios.post("/logout", token)
+        setToken(null);
+        localStorage.clear();
+        api.post("/logout", token)
         .then(response => {
-            setToken(null);
-            localStorage.clear();
-            callback();
+            callback(); // maybe here maybe after.
         }).catch(error => {
             console.log(error);
             console.log("error logging out");
@@ -66,7 +54,7 @@ export function AuthProvider({ children }) {
     }
 
     let signup = (signUpForm, callback) => {
-        axios.post("signup", signUpForm)
+        api.post("signup", signUpForm)
         .then(response => {
             console.log(JSON.stringify(response));
             setToken(response.data.token);

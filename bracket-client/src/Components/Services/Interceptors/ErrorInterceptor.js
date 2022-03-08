@@ -8,7 +8,6 @@ export function errorInterceptor() {
             console.error(error);
             return;
         }
-    
         const errorMessage = response.data?.message || response.statusText;
         console.error('ERROR:', errorMessage);
     });

@@ -1,4 +1,6 @@
-﻿namespace bracket_server.Routing
+﻿using MillerAPI.DataAccess;
+
+namespace bracket_server.Routing
 {
     public abstract class EndpointManager
     {
@@ -19,6 +21,8 @@
             AddPosts(app);
             AddGets(app);
         }
+
+        
 
         private void AddGets(WebApplication app)
         {
@@ -58,9 +62,32 @@
         protected static IResult ErrorResult(string message)
         {
             Dictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            errors.Add("Error", new string[] {message});
+            errors.Add("Error", new string[] { message });
             return Results.ValidationProblem(errors);
         }
-        
+
+
+        internal static List<EndpointManager> GetEndpointMangers()
+        {
+            return new List<EndpointManager>()
+            {
+                new UserEndpoints(),
+                new BracketEndpoints(),
+                new TournamentEndpoints(),
+            };
+        }
+
+        protected static IResult ReturnBasedOnDBResult(DBResult result)
+        {
+            switch(result)
+            {
+                case DBResult.Success:
+                    return Results.Ok();
+                case DBResult.Fail:
+                    return Results.Problem();
+                default:
+                    return Results.NoContent();
+            }
+        }
     }
 }

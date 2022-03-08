@@ -10,5 +10,7 @@ namespace UserManagement.UserDataAccess
         AuthToken GetAuthToken(UserID id);
         UserID UserIDFromToken(AuthToken token);
         Password GetUserAuthenticationInfo(LoggingInUser user);
+        DBResult Logout(AuthToken token);
+
     }
 }

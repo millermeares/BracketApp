@@ -43,7 +43,9 @@ namespace UserManagement.UserDataAccess
 
         internal static string GetUserFromAuthToken = 
             @"SELECT _fk_user FROM user_token WHERE tokenID=@token;";
-        
+
+        internal static string LogoutUser = 
+            @"UPDATE user_token SET revokedTime=now(6) WHERE tokenID=@token;";
         
     }
 }

@@ -15,8 +15,8 @@ namespace bracket_server.Routing
         }
         public override void AddRoutes()
         {
-            AddGet("/home/faketournament", FakeTournament);
-            AddGet("/home/faketournamentskeleton", FakeTournamentSkeleton);
+            AddGet("/faketournament", FakeTournament);
+            AddGet("/faketournamentskeleton", FakeTournamentSkeleton);
 
         }
     }

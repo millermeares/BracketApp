@@ -91,7 +91,17 @@ namespace UserManagement.UserDataAccess
                     };
                 }
                 return Password.EmptyPassword();
-                
+            });
+        }
+
+        public DBResult Logout(AuthToken token)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand("", conn);
+                token.TokenParameter(cmd);
+                int rows = cmd.ExecuteNonQuery();
+                return rows > 0 ? DBResult.Success : DBResult.NoMatch;
             });
         }
     }
