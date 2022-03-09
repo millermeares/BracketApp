@@ -26,18 +26,20 @@ function Game({competitor1, competitor2, id, leftGame, rightGame, className, inB
 
     // this first li needs to have a game-left or game-right tag. but, for now, i'm going to try to render that in Bracket.
     // passing the inbetweencomponent if necessary.
+    // here's what i'm learning. the in between component is not a viable strategy. 
+    // wait maybe. the in between component actually shouldn't affect the horizontal spacing much. 
+    // right? i think so
     return (
         <li className={className}>
             <ul className="game-wrapper">
                 <li className="game-top">
                     {teamComponent(competitor1)}
                 </li>
-                {inBetweenComponent}
+                {inBetweenComponent} 
                 <li className="game-bottom">
                     {teamComponent(competitor2)}
                 </li>
             </ul>
-
         </li>
     )
 }

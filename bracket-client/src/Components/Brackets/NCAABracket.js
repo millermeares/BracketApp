@@ -187,19 +187,19 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
             {makeFinalist2(champGame.competitor2)}
 
             <ul className='round round-4'>
-                {makeRoundComponents(secondHalf(semi_finals_games), true, false, true)}
+                {makeRoundComponents(secondHalf(semi_finals_games), false, false, true)}
             </ul>
             <ul className='round round-3'>
-                {makeRoundComponents(secondHalf(elite_eight_games), true, false, true, true)}
+                {makeRoundComponents(secondHalf(elite_eight_games), false, false, true, true)}
             </ul>
             <ul className='round round-2'>
-                {makeRoundComponents(secondHalf(sweet_16_games), true, false, true)}
+                {makeRoundComponents(secondHalf(sweet_16_games), false, false, true)}
             </ul>
             <ul className='round round-1'>
-                {makeRoundComponents(secondHalf(r_o_32_games), true, false, true)}
+                {makeRoundComponents(secondHalf(r_o_32_games), false, false, true)}
             </ul>
             <ul className='round seed'>
-                {makeRoundComponents(secondHalf(seed_games), true, true, false)}
+                {makeRoundComponents(secondHalf(seed_games), false, true, false)}
             </ul>
         </div>
     )

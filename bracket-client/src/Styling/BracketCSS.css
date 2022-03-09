@@ -59,9 +59,11 @@ body {
     list-style: none;
     padding: 0;
   }
+  /*this is being applied to the game spacers? */
   .tournament .round .spacer {
     flex-grow: 2;
   }
+  /*this seems important.*/
   .tournament .round .spacer:first-child,
   .tournament .round .spacer:last-child {
     flex-grow: 1;
@@ -114,15 +116,15 @@ body {
   }
   
   ul.seed li.game-left span:first-child,
-  ul.seed li.game-right span:last-child {
+  ul.seed li.game-right span:first-child {
       font-size: 0.5em;
   }
   
-  li.game-right {
+  li.game-right li.game-bottom {
     text-align: right;
     border-left: 1px solid #aaa;
   }
-  li.game-left {
+  li.game-left li.game-bottom{
       border-right: 1px solid #aaa;
   }
   li.game-bottom {
@@ -132,6 +134,7 @@ body {
     border: none;
     border-bottom: 1px solid #aaa;
   }
+  /*i think this is what makes the bracket box.*/
   li.game-left.spacer {
       border-right: 1px solid #aaa;
       min-height: 5px;
@@ -171,6 +174,9 @@ body {
     padding-top: 45px;
   }
 
+  
+  /*this is the extra stuff i have i think*/
+  /*this shoudl be fine? */
   .game-wrapper {
     display: flex;
     flex-direction: column;
@@ -181,7 +187,6 @@ body {
 
   .champ-wrapper {
       list-style:none;
-      
   }
 
  
