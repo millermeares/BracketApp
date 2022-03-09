@@ -25,6 +25,8 @@ function SignUp() {
         event.preventDefault();
         auth.signup(form, () => {
             navigate(from, {replace: true});
+        }, (error) => {
+            alert(error); // todo
         });
     }
     

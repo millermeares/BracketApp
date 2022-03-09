@@ -60,6 +60,7 @@ namespace MillerAPI.DataAccess
             {
                 using MySqlConnection conn = new MySqlConnection(_config.GetConnectionString(connectionID));
                 using DbCommand cmd = new MySqlCommand(ErrorDBString.LogException, conn);
+                conn.Open();
                 e.ExceptionParameters(cmd, category);
                 cmd.ExecuteNonQuery();
             }

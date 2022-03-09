@@ -10,3 +10,8 @@ SELECT _fk_user, tokenID, createTime, revokedTime FROM user_token
         WHERE _fk_user=@user AND DATE_ADD(createTime, INTERVAL 15 MINUTE) > UTC_TIMESTAMP() AND revokedTime IS NULL
         ORDER BY createTime DESC 
         LIMIT 1;
+        
+        
+INSERT user(userID, passwordSalt, passwordHash, username, email)
+SELECT @user, @passwordSalt, @passwordHash, @username, @email
+FROM dual WHERE (SELECT COUNT(email) FROM user WHERE email=@email OR username=@username IS NULL);

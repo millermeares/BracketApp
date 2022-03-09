@@ -29,7 +29,7 @@ namespace UserManagement.UserDataAccess
                 int rows = cmd.ExecuteNonQuery();
                 if (rows <= 0)
                 {
-                    throw new Exception($"Unexpected number of affected rows {rows}");
+                    return UserID.MakeEmpty();
                 }
                 return password.AssociatedID;
             });

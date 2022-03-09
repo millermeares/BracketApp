@@ -28,14 +28,15 @@ export function AuthProvider({ children }) {
     let storage_token = localStorage.getItem("token");
     let [token, setToken] = React.useState(storage_token);
 
-    let signin = (logginInForm, callback) => {
+    let signin = (logginInForm, callback, errorCallback) => {
         api.post("/login", logginInForm)
             .then(response => {
-                if(!response.data) {
-                    throw 'response token is null'
+                if(!response.data.valid) {
+                    errorCallback(response.data.payload);
+                    return;
                 }
-                setToken(response.data);
-                localStorage.setItem("token", response.data);
+                setToken(response.data.payload);
+                localStorage.setItem("token", response.data.payload);
                 callback();
             }).catch(error => {
                 console.log(error);
@@ -55,12 +56,15 @@ export function AuthProvider({ children }) {
         });
     }
 
-    let signup = (signUpForm, callback) => {
+    let signup = (signUpForm, callback, errorCallback) => {
         api.post("signup", signUpForm)
         .then(response => {
-            console.log(JSON.stringify(response));
-            setToken(response.data);
-            localStorage.setItem("token", response.data);
+            if(!response.data.valid) {
+                errorCallback(response.data.payload);
+                return;
+            }
+            setToken(response.data.payload);
+            localStorage.setItem("token", response.data.payload);
             callback();
         }).catch(error => {
             console.log(error);

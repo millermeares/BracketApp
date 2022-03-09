@@ -18,7 +18,11 @@ function Login() {
         
         auth.signin(form, () => {
             navigate(from, {replace: true});
-        });
+        }, showError);
+    }
+
+    const showError = (error) => {
+        alert(error); //todo
     }
 
     const setField = (field, value) => {

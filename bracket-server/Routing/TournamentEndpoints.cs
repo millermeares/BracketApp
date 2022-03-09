@@ -6,18 +6,20 @@ namespace bracket_server.Routing
         public static IResult FakeTournament()
         {
             Tournament tournament = FakeTournamentData.MakeFakeNCAATournament();
-            return Results.Ok(tournament);
+            return GoodResult(tournament); ;
         }
         public static IResult FakeTournamentSkeleton()
         {
+
             Tournament tournament = FakeTournamentData.MakeFakeNCAATournamentSkeleton();
-            return Results.Ok(tournament);
+            return GoodResult(tournament);
         }
         public override void AddRoutes()
         {
             AddGet("/faketournament", FakeTournament);
             AddGet("/faketournamentskeleton", FakeTournamentSkeleton);
-
         }
+
+       
     }
 }

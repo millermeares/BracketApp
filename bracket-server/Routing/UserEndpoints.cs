@@ -21,15 +21,23 @@ namespace bracket_server.Routing
                 ValidationResult validation_result = user.Validate();
                 if (!validation_result.Valid)
                 {
-                    return Results.Problem(validation_result.Message);
+                    return ErrorResult("user invalid information");
                 }
                 UserID id = user_access.InsertNewUser(user);
+                if(id.IsEmpty())
+                {
+                    return ErrorResult("Email or username already in use");
+                }
                 AuthToken token = user_access.GetAuthToken(id);
-                return Results.Ok(token);
+                if (token.IsEmpty())
+                {
+                    return ErrorResult("something weird happened with a token");
+                }
+                return GoodResult(token);
             }
             catch (Exception ex)
             {
-                return ResultFromException(ex);
+                return ResultFromException(user_access.GetDataAccess(), ex);
             }
         }
 
@@ -47,11 +55,11 @@ namespace bracket_server.Routing
                     return ErrorResult("bad password");
                 }
                 AuthToken token = user_access.GetAuthToken(password.AssociatedID);
-                return Results.Ok(token);
+                return GoodResult(token);
             }
             catch (Exception ex)
             {
-                return ResultFromException(ex);
+                return ResultFromException(user_access, ex);
             }
         }
 
@@ -64,19 +72,13 @@ namespace bracket_server.Routing
             }
             catch (Exception ex)
             {
-                return ResultFromException(ex);
+                return ResultFromException(user_access, ex);
             }
         }
 
-        private static IResult ResultFromException(Exception ex)
+        public static IResult ResultFromException(IUserDAL dal, Exception ex)
         {
-            // ok so here is where i could put common logging stuff. 
-            return Results.Problem(ExceptionToString(ex));
-        }
-
-        private static string ExceptionToString(Exception ex)
-        {
-            return ex.Message + Environment.NewLine + ex.StackTrace;
+            return ResultFromException(dal.GetDataAccess(), ex);
         }
 
         public override void AddRoutes()

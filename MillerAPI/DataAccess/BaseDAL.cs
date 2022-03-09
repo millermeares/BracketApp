@@ -16,6 +16,11 @@ namespace MillerAPI.DataAccess
             _dataAccess = dataAccess;
         }
 
+        public IDataAccess GetDataAccess()
+        {
+            return _dataAccess;
+        }
+
         public void RecordError(Exception ex)
         {
             _dataAccess.RecordError(ex, GetExceptionCategory());

@@ -5,7 +5,6 @@ namespace bracket_server.Routing
 {
     public abstract class EndpointManager
     {
-        
         public enum HttpRequestType { Post, Get }
         private Dictionary<HttpRequestType, Dictionary<string, Delegate>> _routes = new Dictionary<HttpRequestType, Dictionary<string, Delegate>>();
 
@@ -22,8 +21,6 @@ namespace bracket_server.Routing
             AddPosts(app);
             AddGets(app);
         }
-
-        
 
         private void AddGets(WebApplication app)
         {
@@ -63,7 +60,13 @@ namespace bracket_server.Routing
         protected static IResult ErrorResult(string message)
         {
             RequestResult result = RequestResult.ErrorResult(message);
-            return OkWithRequestResult(result);
+            return Results.Ok(result);
+        }
+
+        protected static IResult GoodResult(object payload)
+        {
+            RequestResult req_r = RequestResult.OkResult(payload);
+            return Results.Ok(req_r);
         }
 
 
@@ -80,12 +83,7 @@ namespace bracket_server.Routing
         protected static IResult ReturnBasedOnDBResult(DBResult result)
         {
             RequestResult req_r = RequestResultBasedOnDBResult(result);
-            return OkWithRequestResult(req_r);
-        }
-
-        protected static IResult OkWithRequestResult(RequestResult result)
-        {
-            return Results.Ok(result);
+            return Results.Ok(req_r);
         }
 
         protected static RequestResult RequestResultBasedOnDBResult(DBResult result)
@@ -99,6 +97,18 @@ namespace bracket_server.Routing
                 default:
                     return RequestResult.ErrorResult("something weird happened");
             }
+        }
+
+        protected static void RecordError(IDataAccess access, Exception ex)
+        {
+            access.RecordError(ex);
+        }
+
+        protected static IResult ResultFromException(IDataAccess dal, Exception ex)
+        {
+            RecordError(dal, ex);
+            var result = RequestResult.ErrorResult("something bad and unexpected happened");
+            return Results.Ok(result);
         }
     }
 }

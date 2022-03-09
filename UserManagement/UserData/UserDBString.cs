@@ -19,10 +19,12 @@ namespace UserManagement.UserDataAccess
             return $"SELECT {_userSelectParams} FROM user u WHERE u.userID=@username;";
         }
 
-        internal static string InsertUser = 
-            
-            @"INSERT user(userID, passwordSalt, passwordHash, username, email)
-            VALUES(@user, @passwordSalt, @passwordHash, @username, @email);";
+        internal static string InsertUser =
+
+            @"
+        INSERT user(userID, passwordSalt, passwordHash, username, email)
+        SELECT @user, @passwordSalt, @passwordHash, @username, @email
+        FROM dual WHERE (SELECT COUNT(email) FROM user WHERE email=@email OR username=@username IS NULL);";
 
         private static string _getAuthTokenForUserBase =
             @"
