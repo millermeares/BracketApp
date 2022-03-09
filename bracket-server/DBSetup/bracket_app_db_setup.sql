@@ -24,9 +24,12 @@ CREATE TABLE `user_token` (
 
 use bracket_app;
 CREATE TABLE error_log (
+	ErrorKey VARCHAR(45) NOT NULL,
 	timeRecorded DATETIME(6) NOT NULL DEFAULT NOW(6),
     message VARCHAR(1000),
     callstack VARCHAR(1000), 
     Category VARCHAR(45),
-    sourece VARCHAR(200)
+    exception_source VARCHAR(200), 
+    PRIMARY KEY(ErrorKey),
+    KEY time_recorded_xception_idx (timeRecorded, errorKey)
 );
