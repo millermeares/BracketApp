@@ -24,8 +24,8 @@ namespace MillerAPI.DataAccess
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-                throw; //todo: log
+                RecordError(ex);
+                throw;
             }
         }
 
@@ -49,11 +49,27 @@ namespace MillerAPI.DataAccess
                 }
             }catch(Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
+                RecordError(ex);
                 throw;
             }
         }
 
-        
+        public void RecordError(Exception e, string category = "database", string connectionID = "default")
+        {
+            try
+            {
+                using MySqlConnection conn = new MySqlConnection(_config.GetConnectionString(connectionID));
+                using DbCommand cmd = new MySqlCommand(ErrorDBString.LogException, conn);
+                e.ExceptionParameters(cmd, category);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                //todo: do something with this exception.
+            }
+            
+        }
+
+
     }
 }

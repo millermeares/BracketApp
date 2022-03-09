@@ -11,10 +11,7 @@ namespace UserManagement.UserDataAccess
 {
     internal static class DBHelpers
     {
-        public static void AddParameter(this DbCommand cmd, string key, object value)
-        {
-            cmd.Parameters.Add(MakeParameter(key, value));
-        }
+        
         public static void SigningUpParameters(this SigningUpUser user, DbCommand command)
         {
             command.Parameters.Add(MakeParameter("@username", user.Username));
@@ -35,12 +32,12 @@ namespace UserManagement.UserDataAccess
 
         public static void LoggingInUserParameters(this LoggingInUser user, DbCommand cmd)
         {
-            AddParameter(cmd, "@username", user.Username);
+            cmd.AddParameter("@username", user.Username);
         }
 
         public static void TokenParameter(this AuthToken token, DbCommand cmd)
         {
-            AddParameter(cmd, "@token", token.Token);
+            cmd.AddParameter("@token", token.Token);
         }
     }
 }

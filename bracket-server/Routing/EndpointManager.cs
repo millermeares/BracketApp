@@ -1,4 +1,5 @@
-﻿using MillerAPI.DataAccess;
+﻿using MillerAPI;
+using MillerAPI.DataAccess;
 
 namespace bracket_server.Routing
 {
@@ -61,9 +62,8 @@ namespace bracket_server.Routing
 
         protected static IResult ErrorResult(string message)
         {
-            Dictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            errors.Add("Error", new string[] { message });
-            return Results.ValidationProblem(errors);
+            RequestResult result = RequestResult.ErrorResult(message);
+            return OkWithRequestResult(result);
         }
 
 
@@ -79,14 +79,25 @@ namespace bracket_server.Routing
 
         protected static IResult ReturnBasedOnDBResult(DBResult result)
         {
+            RequestResult req_r = RequestResultBasedOnDBResult(result);
+            return OkWithRequestResult(req_r);
+        }
+
+        protected static IResult OkWithRequestResult(RequestResult result)
+        {
+            return Results.Ok(result);
+        }
+
+        protected static RequestResult RequestResultBasedOnDBResult(DBResult result)
+        {
             switch(result)
             {
                 case DBResult.Success:
-                    return Results.Ok();
+                    return RequestResult.OkResult();
                 case DBResult.Fail:
-                    return Results.Problem();
+                    return RequestResult.ErrorResult("Database Error");
                 default:
-                    return Results.NoContent();
+                    return RequestResult.ErrorResult("something weird happened");
             }
         }
     }

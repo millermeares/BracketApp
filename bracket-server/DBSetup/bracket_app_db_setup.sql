@@ -22,8 +22,11 @@ CREATE TABLE `user_token` (
   CONSTRAINT `user_token_fk` FOREIGN KEY (`_fk_user`) REFERENCES `user` (`userID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+use bracket_app;
 CREATE TABLE error_log (
-	startDate DATETIME(6) NOT NULL DEFAULT NOW(6),
+	timeRecorded DATETIME(6) NOT NULL DEFAULT NOW(6),
     message VARCHAR(1000),
-    callstack VARCHAR(1000)
+    callstack VARCHAR(1000), 
+    Category VARCHAR(45),
+    sourece VARCHAR(200)
 );

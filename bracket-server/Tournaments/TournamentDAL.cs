@@ -9,7 +9,9 @@ namespace bracket_server.Tournaments
 
         }
 
-        
-
+        public override string GetExceptionCategory()
+        {
+            return "tournament";
+        }
     }
 }

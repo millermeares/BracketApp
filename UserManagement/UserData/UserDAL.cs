@@ -104,5 +104,10 @@ namespace UserManagement.UserDataAccess
                 return rows > 0 ? DBResult.Success : DBResult.NoMatch;
             });
         }
+
+        public override string GetExceptionCategory()
+        {
+            return "user";
+        }
     }
 }

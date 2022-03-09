@@ -9,11 +9,20 @@ namespace MillerAPI.DataAccess
 {
     public abstract class BaseDAL
     {
+        public abstract string GetExceptionCategory();
         protected readonly IDataAccess _dataAccess;
         public BaseDAL(IDataAccess dataAccess)
         {
             _dataAccess = dataAccess;
         }
+
+        public void RecordError(Exception ex)
+        {
+            _dataAccess.RecordError(ex, GetExceptionCategory());
+        }
+
+        
+
         public byte[] GetByteArray(DbDataReader dbr, string key)
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
