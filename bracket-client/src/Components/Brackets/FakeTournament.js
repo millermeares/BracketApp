@@ -5,7 +5,7 @@ function FakeTournament() {
     let [bracket, setBracket] = useState(null);
     useEffect(() => {
         if (!bracket) {
-            api.get("faketournamentskeleton").then(response => {
+            let req = api.get("/faketournamentskeleton").then(response => {
                 setBracket(response.data);
             }).catch(err => {
                 console.log(err);

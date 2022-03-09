@@ -98,7 +98,7 @@ namespace UserManagement.UserDataAccess
         {
             return _dataAccess.DoQuery(conn =>
             {
-                using DbCommand cmd = GetCommand("", conn);
+                using DbCommand cmd = GetCommand(UserDBString.LogoutUser, conn);
                 token.TokenParameter(cmd);
                 int rows = cmd.ExecuteNonQuery();
                 return rows > 0 ? DBResult.Success : DBResult.NoMatch;

@@ -31,9 +31,11 @@ export function AuthProvider({ children }) {
     let signin = (logginInForm, callback) => {
         api.post("/login", logginInForm)
             .then(response => {
-                console.log(JSON.stringify(response));
-                setToken(response.data.token);
-                localStorage.setItem("token", response.data.token);
+                if(!response.data) {
+                    throw 'response token is null'
+                }
+                setToken(response.data);
+                localStorage.setItem("token", response.data);
                 callback();
             }).catch(error => {
                 console.log(error);
@@ -57,8 +59,8 @@ export function AuthProvider({ children }) {
         api.post("signup", signUpForm)
         .then(response => {
             console.log(JSON.stringify(response));
-            setToken(response.data.token);
-            localStorage.setItem("token", response.data.token);
+            setToken(response.data);
+            localStorage.setItem("token", response.data);
             callback();
         }).catch(error => {
             console.log(error);

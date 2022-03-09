@@ -9,7 +9,7 @@ function Dashboard() {
     let logout = (e) => {
         e.preventDefault();
         auth.signout(() => {
-            navigate("...");
+            navigate("../");
         });
     }
     return (

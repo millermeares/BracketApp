@@ -18,15 +18,12 @@ namespace MillerAPI.DataAccess
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine(_config.GetConnectionString(connectionID));
                 using DbConnection conn = new MySqlConnection(_config.GetConnectionString(connectionID));
                 conn.Open();
                 return func(conn);
             }
             catch (Exception ex)
             {
-                string hi = _config.GetConnectionString(connectionID);
-                System.Diagnostics.Debug.WriteLine(hi);
                 System.Diagnostics.Debug.WriteLine(ex.Message);
                 throw; //todo: log
             }
