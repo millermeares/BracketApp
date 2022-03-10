@@ -13,3 +13,9 @@ SELECT _fk_user, tokenID, createTime, revokedTime FROM user_token
         
         
 select * from error_log;
+select * from tournament
+;
+SELECT name, tournamentID from tournament;
+
+SELECT * FROM competitor_tournament;
+  

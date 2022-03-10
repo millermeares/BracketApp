@@ -2,7 +2,7 @@ import {Form, Button} from 'react-bootstrap';
 import {useState} from 'react';
 import {useAuth} from '../Entry/Auth';
 import api from '../Services/api';
-function ContestInput() {
+function ContestInput({onCreateContest}) {
     const [showContestInput, setShowContestInput] = useState(false);
     const [form, setForm] = useState({});
     let auth = useAuth();
@@ -20,7 +20,6 @@ function ContestInput() {
             TournamentName: contest_name,
             Token: auth.token
         }
-        console.log(obj);
         api.post("/createtournament", obj)
         .then(response => {
             if(!response.data.valid) {
@@ -28,6 +27,7 @@ function ContestInput() {
                 return;
             }
             setShowContestInput(false);
+            onCreateContest(response.data.payload);
         }).catch(error => {
             console.log(error);
         });

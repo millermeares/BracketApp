@@ -17,5 +17,10 @@ namespace bracket_server.Tournaments
             cmd.AddParameter("@tournamentID", tournament.ID);
             cmd.AddParameter("@tournamentName", tournament.Name);
         }
+        public static void DivisionParameters(this Division division, DbCommand cmd)
+        {
+            cmd.AddParameter("@tournamentID", division.Tournament);
+            cmd.AddParameter("@divisionName", division.Name);
+        }
     }
 }

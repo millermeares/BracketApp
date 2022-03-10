@@ -1,8 +1,8 @@
 ﻿namespace bracket_server.Routing.APIArgumentHelpers
 {
-    public class ContestAuthToken
+    public class TournamentAuthToken
     {
+        public string TournamentID { get; set; } = string.Empty;
         public AuthToken Token { get; set; } = new AuthToken();
-        public string TournamentName { get; set; } = string.Empty;
     }
 }

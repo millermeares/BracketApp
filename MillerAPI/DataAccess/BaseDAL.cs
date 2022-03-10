@@ -66,5 +66,15 @@ namespace MillerAPI.DataAccess
             MySqlDataReader reader = (MySqlDataReader)dbr;
             return reader.GetDateTime(key);
         }
+
+        protected static List<T> ListFromReader<T>(DbDataReader reader, Func<DbDataReader, T> func)
+        {
+            List<T> list = new List<T>();
+            while(reader.Read())
+            {
+                list.Add(func(reader));
+            }
+            return list;
+        }
     }
 }

@@ -69,6 +69,11 @@ namespace bracket_server.Routing
             return Results.Ok(req_r);
         }
 
+        protected static IResult EmptyValidResult()
+        {
+            RequestResult req_r = RequestResult.OkResult();
+            return Results.Ok(req_r);
+        }
 
         internal static List<EndpointManager> GetEndpointMangers()
         {

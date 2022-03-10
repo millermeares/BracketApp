@@ -21,7 +21,7 @@ CREATE TABLE `user_token` (
   KEY `user_idx_token` (`_fk_user`,`createTime`,`revokedTime`),
   CONSTRAINT `user_token_fk` FOREIGN KEY (`_fk_user`) REFERENCES `user` (`userID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-drop table error_log;
+
 use bracket_app;
 CREATE TABLE error_log (
 	ErrorKey VARCHAR(45) NOT NULL,
