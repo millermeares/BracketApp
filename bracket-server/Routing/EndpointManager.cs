@@ -38,12 +38,12 @@ namespace bracket_server.Routing
             }
         }
 
-        public void AddGet(string route, Delegate func)
+        public virtual void AddGet(string route, Delegate func)
         {
             AddRoute(HttpRequestType.Get, route, func);
         }
 
-        public void AddPost(string route, Delegate func)
+        public virtual void AddPost(string route, Delegate func)
         {
             AddRoute(HttpRequestType.Post, route, func);
         }
@@ -77,6 +77,7 @@ namespace bracket_server.Routing
                 new UserEndpoints(),
                 new BracketEndpoints(),
                 new TournamentEndpoints(),
+                new AdminEndpoints()
             };
         }
 

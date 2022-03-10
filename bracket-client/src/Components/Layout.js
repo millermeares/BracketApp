@@ -1,10 +1,10 @@
 import {AuthStatus} from "./Entry/Auth"
 import { Outlet } from "react-router-dom";
+import Dashboard from "./Navigation/Dashboard";
 function Layout({children}) {
     return (
         <div>
-            <AuthStatus />
-            {children}
+            <Dashboard />
             <Outlet />
         </div>
     )

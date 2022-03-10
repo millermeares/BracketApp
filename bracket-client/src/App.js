@@ -9,6 +9,8 @@ import NothingHere from './Components/Navigation/NothingHere';
 import Layout from './Components/Layout'
 import { RequireAuth, AuthProvider } from './Components/Entry/Auth';
 import FakeTournament from './Components/Brackets/FakeTournament';
+import Admin from './Components/Admin/Admin'
+import Developer from './Components/Developer/Developer'
 function App() {
 
 let home_element = <Home />
@@ -16,18 +18,21 @@ let home_element = <Home />
     <div className="App">
       <AuthProvider>
         <Routes>
-          <Route element={<Layout />}>
-            <Route path="login" element={<GettingIn children={<Login />} />} />
-            <Route path="signup" element={<GettingIn children={<SignUp />} />} />
-            <Route element={<RequireAuth />}>
+          <Route path="login" element={<GettingIn children={<Login />} />} />
+          <Route path="signup" element={<GettingIn children={<SignUp />} />} />
+          <Route element={<RequireAuth />}>
+            <Route element={<Layout />} >
               <Route index element={home_element} />
               <Route path="home" element={home_element}>
                 <Route path="faketournament" element={<FakeTournament />} />
               </Route>
+              <Route path="admin" element={<Admin />} />
+              <Route path="developer" element={<Developer />} />
             </Route>
-            <Route path="*" element={<NothingHere />}></Route>
 
           </Route>
+          <Route path="*" element={<NothingHere />}></Route>
+
         </Routes>
       </AuthProvider>
     </div>

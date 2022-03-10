@@ -32,10 +32,11 @@ namespace UserManagement.UserDataAccess
         WHERE _fk_user=@user AND revokedTime IS NULL;
         INSERT INTO user_token(_fk_user, tokenID, createTime)
         VALUES(@user, @token, UTC_TIMESTAMP());
-        SELECT _fk_user, tokenID, createTime, revokedTime FROM user_token 
-        WHERE _fk_user=@user AND DATE_ADD(createTime, INTERVAL {0} MINUTE) > UTC_TIMESTAMP() AND revokedTime IS NULL
-        ORDER BY createTime DESC 
-        LIMIT 1;
+
+        SELECT ut._fk_user, tokenID, createTime, revokedTime, ur._fk_role FROM user_token ut
+        LEFT OUTER JOIN user_role ur ON ur._fk_user=ut._fk_user
+        WHERE ut._fk_user=@user AND DATE_ADD(createTime, INTERVAL {0} MINUTE) > UTC_TIMESTAMP() AND revokedTime IS NULL
+        ORDER BY createTime DESC;
             ";
 
         internal static string GetAuthTokenForUser(int minute_interval)

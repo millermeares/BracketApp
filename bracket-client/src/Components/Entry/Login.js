@@ -6,7 +6,6 @@ import Form from 'react-bootstrap/Form'
 import {useEffect, useState} from 'react'
 import {BrowserRouter as Router, Link, useNavigate, useLocation} from 'react-router-dom';
 import {useAuth } from './Auth';
-import axios from 'axios';
 function Login() {
     const [form, setForm] = useState({});
     let navigate = useNavigate();

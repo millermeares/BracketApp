@@ -1,4 +1,5 @@
 USE bracket_app;
+
 CREATE TABLE `tournament` (
   `tournamentID` varchar(45) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -6,6 +7,9 @@ CREATE TABLE `tournament` (
   `eventEnd` datetime, 
   PRIMARY KEY(tournamentID)
 );
+ALTER TABLE tournament ADD COLUMN creator VARCHAR(45) NOT NULL, 
+ADD CONSTRAINT creator_fk FOREIGN KEY(creator) REFERENCES user(userID), 
+ADD INDEX tournament_name_idx(name, tournamentID);
 
 CREATE TABLE `tournament_round` (
   `_fk_tournament` varchar(45) NOT NULL,

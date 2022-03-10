@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MillerAPI;
 using MillerAPI.DataAccess;
 using UserManagement.Authentication;
+using UserManagement.Roles;
 using UserManagement.UserModels;
 using static UserManagement.UserDataAccess.DBHelpers;
 namespace UserManagement.UserDataAccess
@@ -44,14 +45,25 @@ namespace UserManagement.UserDataAccess
                 id.UserIDParameter(cmd);
                 cmd.AddParameter("@token", token_to_insert);
                 using DbDataReader reader = cmd.ExecuteReader();
-                if(reader.Read())
+                return AuthTokenFromReader(reader);
+            });
+        }
+
+        private AuthToken AuthTokenFromReader(DbDataReader reader)
+        {
+            AuthToken authToken = AuthToken.MakeEmpty();
+            while(reader.Read())
+            {
+                if(authToken.IsEmpty())
                 {
                     string token = GetString(reader, "tokenID");
                     DateTime createTime = GetDatetime(reader, "createTime");
-                    return new AuthToken(token, createTime);
+                    authToken  = new AuthToken(token, createTime);
                 }
-                return AuthToken.MakeEmpty();
-            });
+                string role = GetString(reader, "_fk_role");
+                authToken.AddRole(new Role() { Name = role });
+            }
+            return authToken;
         }
 
         // not sure this is going to return this but we'll see

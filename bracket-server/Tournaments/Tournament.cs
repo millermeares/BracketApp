@@ -8,5 +8,24 @@
         public DateTime EventEnd { get; set; } = DateTime.MaxValue;
         public Game ChampionshipGame { get; set; } = new Game();
 
+        public static Tournament New(string name)
+        {
+            return new Tournament()
+            {
+                ID = Guid.NewGuid().ToString(),
+                Name = name
+            };
+        }
+
+        public static Tournament MakeEmpty()
+        {
+            return new Tournament();
+        }
+
+        public bool IsEmpty()
+        {
+            return string.IsNullOrEmpty(ID);
+        }
+
     }
 }

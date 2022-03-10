@@ -3,7 +3,24 @@ import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container'
 import { useAuth } from '../Entry/Auth';
+import { Outlet } from 'react-router-dom';
+import {v4 as uuid} from 'uuid';
+
+let getRoleDependentComponents = (auth) => {
+    let roles = auth.getRoles();
+    let components = []
+    for(let i =0; i < roles.length; i++) {
+        let role_link = "/" + roles[i].name;
+        components.push(
+        <Nav key={uuid()} className="me-auto">
+            <Link to={role_link}>{roles[i].name}</Link>
+        </Nav>)
+    }
+    return components;
+}
+
 function Dashboard() {
+    
     let navigate = useNavigate();
     let auth = useAuth();
     let logout = (e) => {
@@ -12,6 +29,10 @@ function Dashboard() {
             navigate("../");
         });
     }
+    console.log(auth.getRoles())
+    console.log(JSON.stringify(auth.token));
+    let role_dependent_components = getRoleDependentComponents(auth);
+    console.log(role_dependent_components);
     return (
         <div className="dashboard">
             <Navbar bg="light">
@@ -22,6 +43,7 @@ function Dashboard() {
                     <Nav className="me-auto">
                         <Link to="/home/faketournament">Fake Tournament</Link>
                     </Nav>
+                    {role_dependent_components}
                     <Nav>
                         <Navbar.Text className="justify-content-end">
                             <button onClick={logout}>Logout</button>

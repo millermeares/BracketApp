@@ -26,6 +26,9 @@ export function RequireAuth() {
 
 export function AuthProvider({ children }) {
     let storage_token = localStorage.getItem("token");
+    if(storage_token != null) {
+        storage_token = JSON.parse(storage_token);
+    }
     let [token, setToken] = React.useState(storage_token);
 
     let signin = (logginInForm, callback, errorCallback) => {
@@ -36,7 +39,7 @@ export function AuthProvider({ children }) {
                     return;
                 }
                 setToken(response.data.payload);
-                localStorage.setItem("token", response.data.payload);
+                localStorage.setItem("token", JSON.stringify(response.data.payload));
                 callback();
             }).catch(error => {
                 console.log(error);
@@ -45,15 +48,15 @@ export function AuthProvider({ children }) {
     }
 
     let signout = (callback) => {
-        setToken(null);
-        localStorage.clear();
         api.post("/logout", token)
         .then(response => {
             callback(); // maybe here maybe after.
         }).catch(error => {
+            console.log(JSON.stringify(token));
             console.log(error);
-            console.log("error logging out");
         });
+        setToken(null);
+        localStorage.clear();
     }
 
     let signup = (signUpForm, callback, errorCallback) => {
@@ -64,7 +67,7 @@ export function AuthProvider({ children }) {
                 return;
             }
             setToken(response.data.payload);
-            localStorage.setItem("token", response.data.payload);
+            localStorage.setItem("token", JSON.stringify(response.data.payload));
             callback();
         }).catch(error => {
             console.log(error);
@@ -72,6 +75,17 @@ export function AuthProvider({ children }) {
         })
     }
 
-    let value = {token, signin, signout, signup};
+    let hasPermission = (permission) => {
+        if(!token) return false;
+        if(!token.roles) return false;
+        return token.roles.map(r => r.name).includes(permission);
+    }
+
+    let getRoles = () => {
+        if(!token) return [];
+        if(!token.roles) return [];
+        return token.roles;
+    }
+    let value = {token, signin, signout, signup, hasPermission, getRoles};
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
