@@ -18,4 +18,5 @@ select * from tournament
 SELECT name, tournamentID from tournament;
 
 SELECT * FROM competitor_tournament;
-  
+set sql_safe_updates=1;
+  delete from competitor_tournament where competitorname="teamsameseed";

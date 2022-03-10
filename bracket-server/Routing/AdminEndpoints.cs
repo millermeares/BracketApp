@@ -59,6 +59,23 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult CreateCompetitor(NewCompetitorAuthToken comp_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            UserID user_id = ConfirmAuth(comp_token.Token, user_dal);
+            if (user_id.IsEmpty()) return Results.Unauthorized();
+            TournamentCompetitor competitor = tournament_dal.CreateTournamentCompetitor(comp_token.TournamentID, comp_token.Competitor);
+            if (competitor.IsEmpty()) return ErrorResult("error creating competitor");
+            return GoodResult(competitor);
+        }
+
+        public static IResult DeleteCompetitor(CompetitorAuthToken competitor, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            UserID user_id = ConfirmAuth(competitor.Token, user_dal);
+            if (user_id.IsEmpty()) return Results.Unauthorized();
+            bool success = tournament_dal.DeleteCompetitor(competitor.Competitor);
+            return success ? EmptyValidResult() : ErrorResult("error deleting competitor");
+        }
+
         private static UserID ConfirmAuth(AuthToken token, IUserDAL user_dal)
         {
             if (!token.Roles.Select(r => r.Name).Contains("admin")) // todo: this isn't secure - i should look it up first.
@@ -73,6 +90,8 @@ namespace bracket_server.Routing
             AddPost("/createtournament", CreateTournament);
             AddPost("/alltournaments", AllTournaments);
             AddPost("/deletetournament", DeleteTournament);
+            AddPost("/createcompetitor", CreateCompetitor);
+            AddPost("/deletecompetitor", DeleteCompetitor);
         }
     }
 }

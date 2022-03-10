@@ -26,15 +26,6 @@ namespace bracket_server.Tournaments
                 cmd.AddParameter("@creator", user_id.ID);
                 int rows = cmd.ExecuteNonQuery();
                 if (rows <= 0) return Tournament.MakeEmpty();
-                DBResult result = InsertRounds(rounds, tournament, trans, conn);
-                if (result != DBResult.Success)
-                {
-                    throw new Exception("Error inserting rounds");
-                }
-                if(!InsertDivisions(divisions, trans, conn))
-                {
-                    throw new Exception("error inserting divisions");
-                }
                 return tournament;
             });
         }
@@ -128,25 +119,31 @@ namespace bracket_server.Tournaments
             });
         }
 
-        public List<Competitor> CompetitorsForTournament(string tournamentID)
+        public List<TournamentCompetitor> TournamentCompetitorsForTournament(string tournamentID)
         {
             return _dataAccess.DoQuery(conn =>
             {
                 using DbCommand cmd = GetCommand(TournamentDBString.GetCompetitorsForTournament, conn);
                 cmd.AddParameter("@tournamentID", tournamentID);
                 using DbDataReader reader = cmd.ExecuteReader();
-                return ListFromReader(reader, CompetitorFromReader);
+                return ListFromReader(reader, TournamentCompetitorFromReader);
             });
         }
 
-        private Competitor CompetitorFromReader(DbDataReader reader)
+        private TournamentCompetitor TournamentCompetitorFromReader(DbDataReader reader)
         {
-            string name = GetString(reader, "name");
-            string id = GetString(reader, "id");
-            return new Competitor() 
+            string name = GetString(reader, "competitorName");
+            string id = GetString(reader, "competitorID");
+            string division = GetString(reader, "_fk_division");
+            int seed= GetInt(reader, "_fk_seed");
+            string tournament = GetString(reader, "_fk_tournament");
+            return new TournamentCompetitor() 
             { 
                 ID=id,
-                Name=name
+                Name=name, 
+                Division =division,
+                Seed=seed,
+                TournamentID=tournament
             };
         }
 
@@ -179,6 +176,29 @@ namespace bracket_server.Tournaments
                 new Round(5, "Final 4"),
                 new Round(6, "Championship")
             };
+        }
+
+        public TournamentCompetitor CreateTournamentCompetitor(string tournamentID, NewTournamentCompetitor competitor)
+        {
+            TournamentCompetitor tournament_competitor = Tournaments.TournamentCompetitor.MakeNew(competitor, tournamentID);
+            return _dataAccess.DoTransaction((conn, trans) =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.InsertTournamentCompetitor, conn);
+                tournament_competitor.TournamentCompetitorParams(cmd);
+                int rows = cmd.ExecuteNonQuery();
+                return tournament_competitor;
+            });
+        }
+
+        public bool DeleteCompetitor(TournamentCompetitor competitor)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.DeleteTournamentCompetitor, conn);
+                competitor.TournamentCompetitorParams(cmd);
+                int rows = cmd.ExecuteNonQuery();
+                return rows > 0;
+            });
         }
     }
 }

@@ -20,7 +20,7 @@ namespace bracket_server.Routing
         {
             try
             {
-                List<Competitor> competitors = tournament_dal.CompetitorsForTournament(tournament_id.ID);
+                List<TournamentCompetitor> competitors = tournament_dal.TournamentCompetitorsForTournament(tournament_id.ID);
                 return GoodResult(competitors);
             }
             catch (Exception ex)

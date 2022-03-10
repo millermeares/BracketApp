@@ -2,8 +2,10 @@ import {useState, useEffect} from 'react';
 import {useAuth} from '../Entry/Auth'
 import api from '../Services/api'
 import {Button, Table} from 'react-bootstrap';
+import AddNewCompetitor from './AddNewCompetitor'
+import CompetitorTable from './CompetitorTable';
 function EditContestCompetitors({id, name}) {
-
+    let auth = useAuth();
     const [competitors, setCompetitors] = useState(null);
 
     useEffect(() => {
@@ -20,20 +22,48 @@ function EditContestCompetitors({id, name}) {
         }
     });
 
-
-    let onAddCompetitorClick = () => {
-
-    }
-
-    function makeCompetitorComponents() {
-        let components = [];
-        for(let i =0 ; i < competitors.length; i++) {
-            
+    let validationVsCurrentCompetitors = (newCompetitor) => {
+        if(competitors.some(c => c.name.trim() == newCompetitor.name.trim())) {
+            return {'name':'name already in use'};
         }
-        return components;
+        if(competitors.some(c => c.seed== newCompetitor.seed && c.division == newCompetitor.division)) {
+            return {'seed':'division/seed combination already in use for this tournament'}
+        }
+        return false;
     }
 
+    let onSuccessfulCompetitorAdd = (competitor) => {
+        competitors.push(competitor);
+        setCompetitors([...competitors]);
+    }
+    let onSuccessfulCompetitorDelete= (competitor) => {
+        let index_of_id = competitors.indexOf(c => c.id == competitor.id);
+        competitors.splice(index_of_id, 1);
+        setCompetitors([...competitors]);
+    }
 
+    let findCompetitor = (id) => {
+        return competitors.find(c => c.id == id);
+    }
+
+    let handleDeleteCompetitor = (competitorID) => {
+        let competitor = findCompetitor(competitorID);
+        let obj = {
+            Token: auth.token, 
+            Competitor: competitor
+        }
+        api.post("/deletecompetitor", obj).then(response => {
+            if(!response.data.valid) {
+                alert(response.data.payload);
+                return;
+            }
+            onSuccessfulCompetitorDelete(competitor)
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+
+    
 
 
     if(!competitors) {
@@ -42,11 +72,9 @@ function EditContestCompetitors({id, name}) {
 
     return (
         <div>
-            <h2>Editing {name}</h2>
-            <Button variant="secondary" onClick={onAddCompetitorClick}>Add Competitor</Button>
-            {
-                makeCompetitorComponents()
-            }
+            <h3>Editing {name}</h3>
+            <AddNewCompetitor tournamentID={id} onSuccessfulAdd={onSuccessfulCompetitorAdd} validateVsExistingCompetitors={validationVsCurrentCompetitors} />
+            <CompetitorTable competitors={competitors} handleDeleteCompetitor={handleDeleteCompetitor}/>
         </div>
     )
 }

@@ -25,6 +25,14 @@
             ";
 
         internal static string GetCompetitorsForTournament = 
-            @"SELECT * FROM competitor_tournament WHERE _fk_tournament=@tournamentID;";
+            @"SELECT * FROM competitor_tournament WHERE _fk_tournament=@tournamentID
+            ORDER BY _fk_division, _fk_seed;";
+
+        internal static string InsertTournamentCompetitor = 
+            @"INSERT INTO competitor_tournament(_fk_tournament, _fk_division, _fk_seed, competitorID, competitorName)
+            VALUES(@tournamentID, @division, @seed, @competitorID, @competitorName);";
+
+        internal static string DeleteTournamentCompetitor =
+            @"DELETE FROM competitor_tournament WHERE _fk_tournament=@tournamentID AND competitorID=@competitorID;";
     }
 }

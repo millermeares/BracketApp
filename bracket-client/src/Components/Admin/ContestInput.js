@@ -37,9 +37,17 @@ function ContestInput({onCreateContest}) {
         setShowContestInput(!showContestInput);
     }
 
+    let getButton = () => {
+        if(showContestInput) {
+            return <Button variant="secondary" size="md" onClick={handleContestClick}>Back</Button>
+        } else {
+            return <Button variant="primary" size="md" onClick={handleContestClick}>Create Contest</Button>
+        }
+    }
+
     return (
         <div>
-            <Button variant="primary" size="md" onClick={handleContestClick}>Create Contest</Button>
+            {getButton()}
             {
                 showContestInput ? 
                 <Form onSubmit={onSubmit}>
@@ -48,7 +56,7 @@ function ContestInput({onCreateContest}) {
 
                     </Form.Control>
                 </Form.Group>
-                <Button variant="secondary" type="submit">Submit</Button>
+                <Button variant="primary" type="submit">Submit</Button>
             </Form>
 
             : null

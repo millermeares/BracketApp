@@ -53,16 +53,9 @@ function Admin() {
         return contests.find(t => t.id == tournamentID);
     }
 
-    
-
-    
-
-    
-
-
 
     return (
-        <div>
+        <div className="tournament-config">
             <h1>Admin</h1>
             <Container>
                 <Row>
@@ -73,7 +66,6 @@ function Admin() {
                         {!editingTournamentID ? null : 
                             <EditContestCompetitors {...getTournament(editingTournamentID)} />
                         }
-                        
                     </Col>
                     <Col sm="4">
                         <ContestInput onCreateContest={onCreateContest} />

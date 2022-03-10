@@ -60,6 +60,11 @@ namespace MillerAPI.DataAccess
             MySqlDataReader reader = (MySqlDataReader)dbr;
             return reader.GetString(key);
         }
+        public int GetInt(DbDataReader dbr, string key)
+        {
+            MySqlDataReader reader = (MySqlDataReader)dbr;
+            return reader.GetInt32(key);
+        }
 
         public DateTime GetDatetime(DbDataReader dbr, string key)
         {

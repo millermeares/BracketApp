@@ -18,7 +18,6 @@ function ContestTable({contests, onTournamentDeleted, setEditingTournamentID}) {
             Token: auth.token,
             TournamentID: tournamentID
         }
-        console.log(obj);
         api.post("/deletetournament", obj)
         .then(response => {
             if(!response.data.valid) {

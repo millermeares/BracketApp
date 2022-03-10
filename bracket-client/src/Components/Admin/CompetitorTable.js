@@ -1,0 +1,34 @@
+import {Table} from 'react-bootstrap'
+import CompetitorRow from './CompetitorRow';
+import {v4 as uuid} from 'uuid'
+import {api} from '../Services/api';
+function CompetitorTable({competitors, handleDeleteCompetitor}) {
+    
+    function competitorComponents() {
+        let components = []
+        for(let i = 0; i < competitors.length; i++) {
+            let props = {...competitors[i], key:uuid(), handleDeleteCompetitor:handleDeleteCompetitor }
+            components.push(
+                <CompetitorRow {...props} />
+            )
+        }
+        return components;
+    }
+
+    return (
+        <Table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Seed</th>
+                    <th>Division</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {competitorComponents()}
+            </tbody>
+        </Table>
+    )
+}
+export default CompetitorTable;
