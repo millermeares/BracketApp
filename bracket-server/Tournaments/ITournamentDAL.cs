@@ -8,6 +8,8 @@
         public MillerAPI.DataAccess.IDataAccess GetDataAccess();
         public TournamentCompetitor CreateTournamentCompetitor(string tournamentID, NewTournamentCompetitor competitor);
         public bool DeleteCompetitor(TournamentCompetitor competitor);
-        public bool DeleteTournament(string tournamentID); 
+        public bool DeleteTournament(string tournamentID);
+        public List<SeedData> GetSeedDataForTournamentType(string tournamentType);
+        public bool SaveSeedData(SeedData data);
     }
 }

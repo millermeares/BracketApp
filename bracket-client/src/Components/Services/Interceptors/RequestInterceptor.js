@@ -6,7 +6,14 @@ export function requestInterceptor() {
         console.log(successfulReq);
         return successfulReq;
     }, function (error) {
-        return Promise.reject(error);
+        const { response } = error;
+        if (!response) {
+            // network error
+            console.error(error);
+            return;
+        }
+        const errorMessage = response.data?.message || response.statusText;
+        console.error('ERROR:', errorMessage);
     }
     )
 }

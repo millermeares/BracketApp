@@ -29,10 +29,7 @@ function Dashboard() {
             navigate("../");
         });
     }
-    console.log(auth.getRoles())
-    console.log(JSON.stringify(auth.token));
     let role_dependent_components = getRoleDependentComponents(auth);
-    console.log(role_dependent_components);
     return (
         <div className="dashboard">
             <Navbar bg="light">

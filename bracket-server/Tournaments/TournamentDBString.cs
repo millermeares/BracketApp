@@ -34,5 +34,21 @@
 
         internal static string DeleteTournamentCompetitor =
             @"DELETE FROM competitor_tournament WHERE _fk_tournament=@tournamentID AND competitorID=@competitorID;";
+
+        internal static string GetSeedDataForTournament =
+            @"
+        SELECT s.seedID, s._fk_tournamentType, sd.finalFourOdds, sd.eliteEightOdds
+        FROM seed s
+        LEFT JOIN seed_data sd ON s.seedID=sd._fk_seed
+        WHERE s._fk_tournamentType=@tournamentType
+        ORDER BY s.seedID;
+            ";
+
+        internal static string UpdateSeedData = 
+            @"
+        DELETE FROM seed_data WHERE _fk_seed=@seedID;
+        INSERT INTO seed_data(_fk_seed, finalFourOdds, eliteEightOdds)
+        VALUES(@seedID, @finalFourOdds, @eliteEightOdds);
+            ";
     }
 }

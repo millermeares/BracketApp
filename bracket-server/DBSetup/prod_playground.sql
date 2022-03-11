@@ -4,4 +4,5 @@ select * from user_token;
 
 
 select * from error_log;
+select * from user_token;
 

@@ -6,3 +6,5 @@ DROP TABLE seed_data;
 DROP TABLE seed;
 DROP TABLE tournament_division;
 DROP TABLE tournament_round;
+drop table tournament;
+use bracket_app;

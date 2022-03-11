@@ -61,24 +61,55 @@ namespace bracket_server.Routing
 
         public static IResult CreateCompetitor(NewCompetitorAuthToken comp_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
         {
-            UserID user_id = ConfirmAuth(comp_token.Token, user_dal);
-            if (user_id.IsEmpty()) return Results.Unauthorized();
-            TournamentCompetitor competitor = tournament_dal.CreateTournamentCompetitor(comp_token.TournamentID, comp_token.Competitor);
-            if (competitor.IsEmpty()) return ErrorResult("error creating competitor");
-            return GoodResult(competitor);
+            try
+            {
+                UserID user_id = ConfirmAuth(comp_token.Token, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                TournamentCompetitor competitor = tournament_dal.CreateTournamentCompetitor(comp_token.TournamentID, comp_token.Competitor);
+                if (competitor.IsEmpty()) return ErrorResult("error creating competitor");
+                return GoodResult(competitor);
+            }
+            catch (Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+
         }
 
         public static IResult DeleteCompetitor(CompetitorAuthToken competitor, IUserDAL user_dal, ITournamentDAL tournament_dal)
         {
-            UserID user_id = ConfirmAuth(competitor.Token, user_dal);
-            if (user_id.IsEmpty()) return Results.Unauthorized();
-            bool success = tournament_dal.DeleteCompetitor(competitor.Competitor);
-            return success ? EmptyValidResult() : ErrorResult("error deleting competitor");
+            try
+            {
+                UserID user_id = ConfirmAuth(competitor.Token, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                bool success = tournament_dal.DeleteCompetitor(competitor.Competitor);
+                return success ? EmptyValidResult() : ErrorResult("error deleting competitor");
+            }
+            catch (Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
         }
+
+        public static IResult SaveSeedData(SeedDataAuthToken seed_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = ConfirmAuth(seed_token.Token, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                bool success = tournament_dal.SaveSeedData(seed_token.Seed);
+                return success ? EmptyValidResult() : ErrorResult("error saving seed");
+            }
+            catch (Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
 
         private static UserID ConfirmAuth(AuthToken token, IUserDAL user_dal)
         {
-            if (!token.Roles.Select(r => r.Name).Contains("admin")) // todo: this isn't secure - i should look it up first.
+            if (!token.Roles.Select(r => r.Name).Contains("admin")) // todo: this isn't secure - i should look instead of depending on the input.
             {
                 return UserID.MakeEmpty();
             }
@@ -92,6 +123,7 @@ namespace bracket_server.Routing
             AddPost("/deletetournament", DeleteTournament);
             AddPost("/createcompetitor", CreateCompetitor);
             AddPost("/deletecompetitor", DeleteCompetitor);
+            AddPost("/saveseeddata", SaveSeedData);
         }
     }
 }

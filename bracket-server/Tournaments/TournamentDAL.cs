@@ -147,6 +147,28 @@ namespace bracket_server.Tournaments
             };
         }
 
+        public List<SeedData> GetSeedDataForTournamentType(string tournamentType)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.GetSeedDataForTournament, conn);
+                cmd.AddParameter("@tournamentType", tournamentType);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return ListFromReader(reader, SeedDataFromReader);
+            });
+        }
+
+        private SeedData SeedDataFromReader(DbDataReader reader)
+        {
+            return new SeedData()
+            {
+                SeedID = GetInt(reader, "seedID"),
+                FinalFourOdds = GetDouble(reader, "finalFourOdds"),
+                EliteEightOdds = GetDouble(reader,"eliteEightOdds"),
+                TournamentType = GetString(reader, "_fk_tournamentType")
+            };
+        }
+
 
 
         public override string GetExceptionCategory()
@@ -196,6 +218,17 @@ namespace bracket_server.Tournaments
             {
                 using DbCommand cmd = GetCommand(TournamentDBString.DeleteTournamentCompetitor, conn);
                 competitor.TournamentCompetitorParams(cmd);
+                int rows = cmd.ExecuteNonQuery();
+                return rows > 0;
+            });
+        }
+
+        public bool SaveSeedData(SeedData data)
+        {
+            return _dataAccess.DoTransaction((conn, trans) =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.UpdateSeedData, conn, trans);
+                data.SeedDataParams(cmd);
                 int rows = cmd.ExecuteNonQuery();
                 return rows > 0;
             });

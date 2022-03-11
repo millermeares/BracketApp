@@ -7,7 +7,7 @@ export function useAuth() {
     return React.useContext(AuthContext);
 }
 
-export function AuthStatus() {
+export function AuthStatus() { // i don't think this is ever used now.
     let auth = useAuth();
     
     return (
@@ -27,7 +27,13 @@ export function RequireAuth() {
 export function AuthProvider({ children }) {
     let storage_token = localStorage.getItem("token");
     if(storage_token != null) {
-        storage_token = JSON.parse(storage_token);
+        try {
+            storage_token = JSON.parse(storage_token);
+        }catch(err) {
+            localStorage.clear();
+            storage_token = null;
+        }
+        
     }
     let [token, setToken] = React.useState(storage_token);
 
@@ -78,7 +84,7 @@ export function AuthProvider({ children }) {
     let hasPermission = (permission) => {
         if(!token) return false;
         if(!token.roles) return false;
-        return token.roles.map(r => r.name).includes(permission);
+        return token.roles.map(r => r.name.toLowerCase()).includes(permission.toLowerCase());
     }
 
     let getRoles = () => {

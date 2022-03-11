@@ -15,7 +15,6 @@ function AddNewCompetitor({ tournamentID, validateVsExistingCompetitors, onSucce
     const [errors, setErrors] = useState({})
     const [form, setForm] = useState({});
     if(!form.seed) {
-        console.log("setting defaults");
         setDefaultFormSelectValues(form);
     }
     let auth = useAuth();
@@ -122,7 +121,7 @@ function AddNewCompetitor({ tournamentID, validateVsExistingCompetitors, onSucce
                         <Row>
                             <Col>
                                 <Form.Group className="mb-3" controlid="formCompetitorName">
-                                    <Form.Label>Username</Form.Label>
+                                    <Form.Label>Team Name</Form.Label>
                                     <Form.Control type="text" placeholder="New Competitor" required onChange={(event) => setField('name', event.target.value)}>
                                     </Form.Control>
                                     <Form.Control.Feedback type='invalid'>{errors.name}</Form.Control.Feedback>

@@ -26,7 +26,7 @@ let home_element = <Home />
               <Route path="home" element={home_element}>
                 <Route path="faketournament" element={<FakeTournament />} />
               </Route>
-              <Route path="admin" element={<Admin />} />
+              <Route path="admin/*" element={<Admin />} />
               <Route path="developer" element={<Developer />} />
             </Route>
 

@@ -7,19 +7,25 @@ import CompetitorTable from './CompetitorTable';
 function EditContestCompetitors({id, name}) {
     let auth = useAuth();
     const [competitors, setCompetitors] = useState(null);
+    const [competitorTournamentID, setCompetitorTournamentID] = useState(id); // not necessarily an ideal solution - there's like 0.25 second where the info is wrong.
+
+    let loadedContestsCompetitorHasChanged = () => {
+        return ((competitors) && id != competitorTournamentID);
+    }
 
     useEffect(() => {
-        if(!competitors) {
+        if(!competitors || loadedContestsCompetitorHasChanged()) {
             api.post("/getcompetitors", {id:id}).then(response => {
                 if(!response.data.valid) {
                     alert(response.data.payload);
                     return;
                 }
                 setCompetitors(response.data.payload);
+                setCompetitorTournamentID(id);
             }).catch(err => {
                 console.log(err);
             });
-        }
+        } 
     });
 
     let validationVsCurrentCompetitors = (newCompetitor) => {

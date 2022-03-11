@@ -27,13 +27,26 @@ namespace bracket_server.Routing
             {
                 return ResultFromException(tournament_dal.GetDataAccess(), ex);
             }
-            
         }
+
+        public static IResult GetSeedData(ITournamentDAL tournament_dal)
+        {
+            string tournamentType = "NCAA64Basketball"; // this would probably be a url argument
+            try
+            {
+                return GoodResult(tournament_dal.GetSeedDataForTournamentType(tournamentType));
+            }catch(Exception ex)
+            {
+                return ResultFromException(tournament_dal.GetDataAccess(), ex);
+            }
+        }
+
         public override void AddRoutes()
         {
             AddGet("/faketournament", FakeTournament);
             AddGet("/faketournamentskeleton", FakeTournamentSkeleton);
             AddPost("/getcompetitors", GetCompetitors);
+            AddGet("/getseeddata", GetSeedData);
         }
 
         

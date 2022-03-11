@@ -31,5 +31,12 @@ namespace bracket_server.Tournaments
             cmd.AddParameter("@seed", competitor.Seed);
             cmd.AddParameter("@competitorName", competitor.Name);
         }
+
+        public static void SeedDataParams(this SeedData data, DbCommand cmd)
+        {
+            cmd.AddParameter("@seedID", data.SeedID);
+            cmd.AddParameter("@finalFourOdds", data.FinalFourOdds);
+            cmd.AddParameter("@eliteEightOdds", data.EliteEightOdds);
+        }
     }
 }
