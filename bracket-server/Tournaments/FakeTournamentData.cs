@@ -16,24 +16,8 @@
         public static Tournament MakeFakeNCAATournamentSkeleton()
         {
             List<Game> base_games = GetFakeBaseGames(8);
-            Game championship_game = ChampionshipSkeletonFromBase(base_games);
+            Game championship_game = Tournament.ChampionshipSkeletonFromBase(base_games);
             return MakeFakeTournament("NCAA FAKE", championship_game);
-        }
-
-        private static Game ChampionshipSkeletonFromBase(List<Game> base_games)
-        {
-            if (base_games.Count == 1) return base_games.First();
-            if (base_games.Count % 2 != 0) throw new ArgumentException("must have even number of games");
-            List<Game> next_round_games = new List<Game>();
-            int first_game_index = 0;
-            while (first_game_index < base_games.Count)
-            {
-                Game game1 = base_games[first_game_index];
-                Game game2 = base_games[first_game_index + 1];
-                next_round_games.Add(Game.MakeParentGame(game1, game2));
-                first_game_index += 2;
-            }
-            return ChampionshipSkeletonFromBase(next_round_games);
         }
 
         public static Game ChampionshipGameFromBase(List<Game> base_games)

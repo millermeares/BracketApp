@@ -11,5 +11,8 @@
         public bool DeleteTournament(string tournamentID);
         public List<SeedData> GetSeedDataForTournamentType(string tournamentType);
         public bool SaveSeedData(SeedData data);
+
+        public bool FinalizeTournament(Tournament tournament);
+        public Tournament GetTournamentTopLevelByID(string tournamentID);
     }
 }

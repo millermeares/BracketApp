@@ -11,6 +11,7 @@ namespace UserManagement.UserDataAccess
         UserID InsertNewUser(SigningUpUser user);
         AuthToken GetAuthToken(UserID id);
         UserID UserIDFromToken(AuthToken token);
+        AuthenticatedUser AuthenticatedUserFromToken(AuthToken token);
         Password GetUserAuthenticationInfo(LoggingInUser user);
         DBResult Logout(AuthToken token);
 

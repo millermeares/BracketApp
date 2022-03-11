@@ -17,7 +17,6 @@ namespace bracket_server.Tournaments
         {
             List<Round> rounds = NCAARounds();
             Tournament tournament = Tournament.New(tournament_name);
-            List<Division> divisions = NCAADivisions(tournament.ID);
 
             return _dataAccess.DoTransaction((conn, trans) =>
             {
@@ -60,33 +59,6 @@ namespace bracket_server.Tournaments
             }
         }
 
-        public bool InsertDivisions(List<Division> divisions, DbTransaction trans, DbConnection conn)
-        {
-            try
-            {
-                foreach(Division division in divisions)
-                {
-                    InsertDivision(division, trans, conn);
-                }
-                return true;
-            }catch(Exception ex)
-            {
-                RecordError(ex);
-                return false;
-            }
-        }
-
-        public void InsertDivision(Division division, DbTransaction trans, DbConnection conn)
-        {
-
-            using DbCommand cmd = GetCommand(TournamentDBString.InsertDivision, conn);
-            division.DivisionParameters(cmd);
-            int rows = cmd.ExecuteNonQuery();
-            if (rows <= 0)
-            {
-                throw new Exception($"Unexpected number of rows {rows} when inserting tournament division");
-            }
-        }
 
         public List<Tournament> AllTournaments()
         {
@@ -98,6 +70,21 @@ namespace bracket_server.Tournaments
             });
         }
 
+        public Tournament GetTournamentTopLevelByID(string tournamentID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.GetTournamentTopLevelByID, conn);
+                cmd.AddParameter("@tournamentID", tournamentID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return TournamentTopLevelInfoFromReader(reader);
+                }
+                return Tournament.MakeEmpty();
+            });
+        }
+
         private Tournament TournamentTopLevelInfoFromReader(DbDataReader reader)
         {
             string name = GetString(reader, "name");
@@ -105,7 +92,8 @@ namespace bracket_server.Tournaments
             return new Tournament()
             {
                 ID = id,
-                Name = name
+                Name = name,
+                Finalized = GetBool(reader, "tournamentFinalized")
             };
         }
 
@@ -176,16 +164,7 @@ namespace bracket_server.Tournaments
             return "tournament";
         }
 
-        private List<Division> NCAADivisions(string tournament)
-        {
-            return new List<Division>()
-            {
-                new Division("South", tournament), 
-                new Division("East", tournament), 
-                new Division("West", tournament), 
-                new Division("Midwest", tournament)
-            };
-        }
+        
 
         private List<Round> NCAARounds()
         {
@@ -231,6 +210,25 @@ namespace bracket_server.Tournaments
                 data.SeedDataParams(cmd);
                 int rows = cmd.ExecuteNonQuery();
                 return rows > 0;
+            });
+        }
+
+        public bool FinalizeTournament(Tournament tournament)
+        {
+            return _dataAccess.DoTransaction((conn, trans) =>
+            {
+                using DbCommand cmd = GetCommand("", conn);
+                cmd.CommandText = TournamentDBString.FinalizeTournament(tournament, cmd);
+                System.Diagnostics.Debug.WriteLine(cmd.CommandText);
+                tournament.TournamentParameters(cmd);
+                int rows = cmd.ExecuteNonQuery();
+                // total games + total competitors in games + one row to finalize the tournament.
+                int expected_rows = 63 + 64 + 1;
+                if(rows != expected_rows)
+                {
+                    throw new Exception($"Unexpected number of affected rows when finalizing tournament {expected_rows}");
+                }
+                return true;
             });
         }
     }

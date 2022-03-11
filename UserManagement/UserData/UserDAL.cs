@@ -121,5 +121,36 @@ namespace UserManagement.UserDataAccess
         {
             return "user";
         }
+
+        public AuthenticatedUser AuthenticatedUserFromToken(AuthToken token)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(UserDBString.GetAuthenticatedUserFromAuthToken, conn);
+                token.TokenParameter(cmd);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return SingleAuthenticatedUserFromReader(reader);
+            });
+        }
+
+        private AuthenticatedUser SingleAuthenticatedUserFromReader(DbDataReader reader)
+        {
+            AuthenticatedUser user = AuthenticatedUser.MakeEmpty();
+            while(reader.Read())
+            {
+                if(user.IsEmpty())
+                {
+                    string username = GetString(reader, "username");
+                    string id = GetString(reader, "_fk_user");
+                    user = new AuthenticatedUser(username, id);
+                }
+                string role = GetString(reader, "_fk_role");
+                if(!string.IsNullOrEmpty(role))
+                {
+                    user.AddRole(role);
+                }
+            }
+            return user;
+        }
     }
 }

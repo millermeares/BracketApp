@@ -2,7 +2,8 @@ import {useAuth} from '../Entry/Auth';
 import {useNavigate} from 'react-router-dom';
 import {useEffect} from 'react';
 import EditableTable from '../Generalized/EditableTable';
-
+import {Button} from 'react-bootstrap'
+import api from '../Services/api';
 let makeProducts = () => {
     let products = [];
     for(let i = 0; i < 10; i++) {
@@ -41,10 +42,24 @@ function Developer() {
     let onEditFunc = (row) => {
         console.log(row);
     }
+    let handleMillerTest = () => {
+        let obj = {
+            Token: auth.token,
+            TournamentName: "TestTournament1"
+        }
+        api.post("/millertest", obj).then(response => {
+            if(!response.data.valid) {
+                alert(response.data.payload);
+                return;
+            }
+            alert("success");
+        })
+    }
 
     return (
         <div>
             <h1>Developer</h1>
+            <Button onClick={handleMillerTest}>Miller Test</Button>
             <EditableTable columns={tableColumns} data={makeProducts()} saveRowFunction={onEditFunc} keyField='id'/>
         </div>
     )

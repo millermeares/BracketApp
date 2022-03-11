@@ -42,10 +42,20 @@ function ConfigTournament() {
     let onEditCompetitorsClick = (tournamentID) => {
         setEditingTournamentID(tournamentID);
     }
-
-    let getTournament = (tournamentID) => {
-        return contests.find(t => t.id == tournamentID);
+    let onSuccessfulFinalize = (id) => {
+        let tournament = getTournament(id);
+        tournament.finalized = true;
+        setContests([...contests]);
     }
+    let getTournament = (tournamentID, includeOnSuccessfulFinalize) => {
+        if(includeOnSuccessfulFinalize) {
+            return {...contests.find(t => t.id == tournamentID), onSuccessfulFinalize:onSuccessfulFinalize};
+        } else {
+            return {...contests.find(t => t.id ==tournamentID )}
+        }
+    }
+
+    
 
 
     return (
@@ -56,7 +66,7 @@ function ConfigTournament() {
                 </Col>
                 <Col sm="4">
                     {!editingTournamentID ? null :
-                        <EditContestCompetitors {...getTournament(editingTournamentID)} />
+                        <EditContestCompetitors {...getTournament(editingTournamentID, true)} />
                     }
                 </Col>
                 <Col sm="4">

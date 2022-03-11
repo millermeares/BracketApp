@@ -4,7 +4,7 @@ import api from '../Services/api'
 import {Button, Table} from 'react-bootstrap';
 import AddNewCompetitor from './AddNewCompetitor'
 import CompetitorTable from './CompetitorTable';
-function EditContestCompetitors({id, name}) {
+function EditContestCompetitors({id, name, finalized, onSuccessfulFinalize}) {
     let auth = useAuth();
     const [competitors, setCompetitors] = useState(null);
     const [competitorTournamentID, setCompetitorTournamentID] = useState(id); // not necessarily an ideal solution - there's like 0.25 second where the info is wrong.
@@ -69,18 +69,44 @@ function EditContestCompetitors({id, name}) {
         });
     }
 
-    
-
+    let handleFinalize = () => {
+        if(competitors.length != 64) {
+            alert("must have 64 competitors");
+            return;
+        }
+        let obj = {
+            TournamentID: id,
+            Token: auth.token
+        }
+        api.post("/finalizetournament", obj).then(response => {
+            if(!response.data.valid) {
+                alert(response.data.payload);
+                return;
+            }
+            onSuccessfulFinalize(id);
+        }).catch(error => {
+            console.log(error);            
+        })
+    }
 
     if(!competitors) {
         return <div>Loading Competitors...</div>
     }
 
+    let disable_finalize = competitors.length != 64;
+
+
     return (
         <div>
-            <h3>Editing {name}</h3>
-            <AddNewCompetitor tournamentID={id} onSuccessfulAdd={onSuccessfulCompetitorAdd} validateVsExistingCompetitors={validationVsCurrentCompetitors} />
-            <CompetitorTable competitors={competitors} handleDeleteCompetitor={handleDeleteCompetitor}/>
+            <h3>{finalized ? "Finalized" : "Editing"} {name}</h3>
+            {finalized ? null : 
+            <div>
+                <Button variant="danger" disabled={disable_finalize} onClick={handleFinalize}>Finalize Competitors</Button>
+                <AddNewCompetitor tournamentID={id} onSuccessfulAdd={onSuccessfulCompetitorAdd} validateVsExistingCompetitors={validationVsCurrentCompetitors} />
+            </div>
+            
+            }
+            <CompetitorTable competitors={competitors} handleDeleteCompetitor={handleDeleteCompetitor} allowDelete={!finalized}/>
         </div>
     )
 }

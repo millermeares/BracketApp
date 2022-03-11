@@ -35,5 +35,13 @@ namespace MillerAPI.DataAccess
             cmd.AddParameter("@category", category);
             cmd.AddParameter("@errorKey", Guid.NewGuid().ToString());
         }
+        internal static void ExceptionParameters(this MySqlException e, DbCommand cmd, string category)
+        {
+            cmd.AddParameter("@message", e.Message + " - " + e.InnerException?.Message);
+            cmd.AddParameter("@callstack", e.StackTrace);
+            cmd.AddParameter("@exceptionSource", e.Source);
+            cmd.AddParameter("@category", category);
+            cmd.AddParameter("@errorKey", Guid.NewGuid().ToString());
+        }
     }
 }

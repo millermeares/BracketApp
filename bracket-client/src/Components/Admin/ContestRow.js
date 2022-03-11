@@ -1,5 +1,5 @@
 import {Button} from 'react-bootstrap';
-function ContestRow({name, id, handleEditCompetitors, handleDeleteTournament}) {
+function ContestRow({name, id, finalized, handleEditCompetitors, handleDeleteTournament}) {
     
     return (
         <tr>
@@ -10,7 +10,7 @@ function ContestRow({name, id, handleEditCompetitors, handleDeleteTournament}) {
                 </Button>
             </td>
             <td>
-                <Button variant="danger" onClick={() => handleDeleteTournament(id)}>
+                <Button variant="danger" disabled={finalized} onClick={() => handleDeleteTournament(id)}>
                     Delete
                 </Button>
             </td>

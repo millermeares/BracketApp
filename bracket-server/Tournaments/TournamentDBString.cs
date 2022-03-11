@@ -1,4 +1,8 @@
-﻿namespace bracket_server.Tournaments
+﻿using MillerAPI.DataAccess;
+using System.Data.Common;
+using System.Text;
+
+namespace bracket_server.Tournaments
 {
     internal static class TournamentDBString
     {
@@ -15,13 +19,14 @@
             VALUES(@tournamentID, @divisionName);";
 
         internal static string AllTournaments = 
-            @"SELECT name, tournamentID from tournament;";
+            @"SELECT name, tournamentID, tournamentFinalized from tournament;";
+
+        internal static string GetTournamentTopLevelByID = 
+            @"SELECT name, tournamentID, tournamentFinalized FROM tournament WHERE tournamentID=@tournamentID;";
 
         internal static string DeleteTournament = 
             @"
         DELETE FROM tournament_division WHERE _fk_tournament=@tournamentID;
-        DELETE FROM tournament_round WHERE _fk_tournament=@tournamentID;
-        DELETE FROM tournament WHERE tournamentID=@tournamentID;
             ";
 
         internal static string GetCompetitorsForTournament = 
@@ -50,5 +55,80 @@
         INSERT INTO seed_data(_fk_seed, finalFourOdds, eliteEightOdds)
         VALUES(@seedID, @finalFourOdds, @eliteEightOdds);
             ";
+
+
+        private static string _finalizeTournamentBase = 
+            @"
+        INSERT INTO tournament_game(_fk_tournament, _fk_division, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame)
+        VALUES
+        {0};
+        
+        INSERT INTO game_participant(_fk_competitor, _fk_game)
+        VALUES
+        {1};
+        
+        UPDATE tournament SET tournamentFinalized=true WHERE tournamentID=@tournamentID;
+            ";
+        internal static string FinalizeTournament(Tournament tournament, DbCommand cmd)
+        {
+            List<Game> games = tournament.ChampionshipGame.Flatten();
+            return string.Format(_finalizeTournamentBase,
+                GetInsertTournamentGameValuesString(cmd, games), GetInsertCompetitorsString(cmd, games)
+                );
+        }
+
+        private static string GetInsertTournamentGameValuesString(DbCommand cmd, List<Game> games)
+        {
+            //(_fk_tournament, _fk_division, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame)
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < games.Count; i++)
+            {
+                string division_param_name = $"@gameTDivision{i}";
+                string game_round_name = $"@gameTRound{i}";
+                string game_id = $"@gameTID{i}";
+                string game_left_id = $"@gameTLGID{i}";
+                string game_right_id = $"@gameTRGID{i}";
+                cmd.AddParameter(division_param_name, games[i].Division);
+                cmd.AddParameter(game_round_name, games[i].Round);
+                cmd.AddParameter(game_id, games[i].ID);
+                cmd.AddParameter(game_left_id, games[i].LeftGame == null ? null : games[i].LeftGame.ID);
+                
+
+                cmd.AddParameter(game_right_id, games[i].RightGame == null ? null : games[i].RightGame.ID);
+                sb.Append($"(@tournamentName, {division_param_name}, {game_round_name}, {game_id}, {game_left_id}, {game_right_id})");
+                if(i != games.Count - 1)
+                {
+                    sb.Append(",");
+                }
+            }
+            return sb.ToString();
+        }
+
+        private static string GetInsertCompetitorsString(DbCommand cmd, List<Game> games)
+        {
+            //_fk_competitor, _fk_game
+            StringBuilder sb = new StringBuilder();
+            List<Game> competitor_games = games.Where(g => g.HasCompetitors()).ToList();
+            for(int i = 0; i < competitor_games.Count; i++)
+            {
+                string game_id = $"@gameCID{i}";
+                cmd.AddParameter(game_id, competitor_games[i].ID);
+
+                string competitor_1_id = $"@gameC1ID{i}";
+                cmd.AddParameter(competitor_1_id, competitor_games[i].Competitor1?.ID);
+
+                string competitor_2_id = $"@gameC2ID{i}";
+                cmd.AddParameter(competitor_2_id, competitor_games[i].Competitor2?.ID);
+
+                sb.Append($"({competitor_1_id},{game_id}),");
+                sb.Append($"({competitor_2_id},{game_id})");
+                if(i != competitor_games.Count - 1)
+                {
+                    sb.Append(",");
+                }
+            }
+            return sb.ToString();
+
+        }
     }
 }

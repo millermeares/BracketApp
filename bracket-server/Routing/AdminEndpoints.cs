@@ -43,13 +43,18 @@ namespace bracket_server.Routing
             }
         }
 
-        public static IResult DeleteTournament(TournamentAuthToken tournament, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        public static IResult DeleteTournament(TournamentIDAuthToken t_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
         {
             try
             {
-                UserID user_id = ConfirmAuth(tournament.Token, user_dal);
+                UserID user_id = ConfirmAuth(t_token.Token, user_dal);
                 if (user_id.IsEmpty()) return Results.Unauthorized();
-                bool success = tournament_dal.DeleteTournament(tournament.TournamentID);
+                Tournament to_delete = tournament_dal.GetTournamentTopLevelByID(t_token.TournamentID);
+                if(to_delete.Finalized)
+                {
+                    return ErrorResult("tournament already finalized");
+                }
+                bool success = tournament_dal.DeleteTournament(to_delete.ID);
                 if (!success) return ErrorResult("Failed to delete");
                 return EmptyValidResult();
             }
@@ -106,14 +111,29 @@ namespace bracket_server.Routing
             }
         }
 
-
-        private static UserID ConfirmAuth(AuthToken token, IUserDAL user_dal)
+        public static IResult FinalizeTournament(TournamentIDAuthToken tournament_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
         {
-            if (!token.Roles.Select(r => r.Name).Contains("admin")) // todo: this isn't secure - i should look instead of depending on the input.
+            try
             {
-                return UserID.MakeEmpty();
+                UserID user_id = ConfirmAuth(tournament_token.Token, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                Tournament tournament = tournament_dal.GetTournamentTopLevelByID(tournament_token.TournamentID);
+                if (tournament.IsEmpty()) return ErrorResult("could not find tournament");
+                List<TournamentCompetitor> competitors = tournament_dal.TournamentCompetitorsForTournament(tournament_token.TournamentID);
+                if(competitors.Count != 64) throw new ArgumentException($"Not the correct number of competitors {competitors.Count}");
+                tournament.FillOutTournament(competitors);
+                bool success = tournament_dal.FinalizeTournament(tournament);
+                return ResultFromBool(success, "error finalizing tournament");
             }
-            return user_dal.UserIDFromToken(token);
+            catch(Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
+        private static UserID ConfirmAuth(AuthToken token, IUserDAL dal)
+        {
+            return ConfirmDesiredAuth(token, dal, "admin");
         }
 
         public override void AddRoutes()
@@ -124,6 +144,7 @@ namespace bracket_server.Routing
             AddPost("/createcompetitor", CreateCompetitor);
             AddPost("/deletecompetitor", DeleteCompetitor);
             AddPost("/saveseeddata", SaveSeedData);
+            AddPost("/finalizetournament", FinalizeTournament);
         }
     }
 }

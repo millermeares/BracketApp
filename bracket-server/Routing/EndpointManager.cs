@@ -82,7 +82,8 @@ namespace bracket_server.Routing
                 new UserEndpoints(),
                 new BracketEndpoints(),
                 new TournamentEndpoints(),
-                new AdminEndpoints()
+                new AdminEndpoints(), 
+                new DeveloperEndpoints()
             };
         }
 
@@ -115,6 +116,23 @@ namespace bracket_server.Routing
             RecordError(dal, ex);
             var result = RequestResult.ErrorResult("something bad and unexpected happened");
             return Results.Ok(result);
+        }
+
+        protected static IResult ResultFromBool(bool success, string error_msg)
+        {
+            return success ? EmptyValidResult() : ErrorResult(error_msg);
+        }
+
+
+        protected static UserID ConfirmDesiredAuth(AuthToken token, IUserDAL user_dal, string desired_role)
+        {
+            AuthenticatedUser user = user_dal.AuthenticatedUserFromToken(token);
+            if (user.IsEmpty()) return UserID.MakeEmpty();
+            if (!user.HasRole(desired_role))
+            {
+                return UserID.MakeEmpty();
+            }
+            return user.ID;
         }
     }
 }

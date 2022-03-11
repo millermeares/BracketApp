@@ -20,3 +20,11 @@ SELECT name, tournamentID from tournament;
 SELECT * FROM competitor_tournament;
 set sql_safe_updates=1;
   delete from competitor_tournament where competitorname="teamsameseed";
+  set @tournamentType="NCAA64Basketball";
+  select * from seed;
+  select * from seed_data;
+  SELECT s.seedID, s._fk_tournamentType, sd.finalFourOdds, sd.eliteEightOdds
+        FROM seed s
+        LEFT JOIN seed_data sd ON s.seedID=sd._fk_seed
+        WHERE s._fk_tournamentType=@tournamentType
+        ORDER BY s.seedID;

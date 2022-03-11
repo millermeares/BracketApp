@@ -2,12 +2,12 @@ import {Table} from 'react-bootstrap'
 import CompetitorRow from './CompetitorRow';
 import {v4 as uuid} from 'uuid'
 import {api} from '../Services/api';
-function CompetitorTable({competitors, handleDeleteCompetitor}) {
+function CompetitorTable({competitors, allowDelete, handleDeleteCompetitor}) {
     
     function competitorComponents() {
         let components = []
         for(let i = 0; i < competitors.length; i++) {
-            let props = {...competitors[i], key:uuid(), handleDeleteCompetitor:handleDeleteCompetitor }
+            let props = {...competitors[i], key:uuid(), handleDeleteCompetitor:handleDeleteCompetitor, allowDelete: allowDelete }
             components.push(
                 <CompetitorRow {...props} />
             )
@@ -22,7 +22,7 @@ function CompetitorTable({competitors, handleDeleteCompetitor}) {
                     <th>Name</th>
                     <th>Seed</th>
                     <th>Division</th>
-                    <th>Delete</th>
+                    {allowDelete ? <th>Delete</th> : null}
                 </tr>
             </thead>
             <tbody>

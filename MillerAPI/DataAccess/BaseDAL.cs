@@ -55,9 +55,13 @@ namespace MillerAPI.DataAccess
         }
 
 
-        public string GetString(DbDataReader dbr, string key)
+        public string GetString(DbDataReader dbr, string key, string alternative = "")
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
+            if(reader.IsDBNull(GetColumnNumber(reader, key)))
+            {
+                return alternative;
+            }
             return reader.GetString(key);
         }
         public int GetInt(DbDataReader dbr, string key)
@@ -76,6 +80,12 @@ namespace MillerAPI.DataAccess
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
             return reader.GetDateTime(key);
+        }
+
+        public bool GetBool(DbDataReader dbr, string key)
+        {
+            MySqlDataReader reader = (MySqlDataReader)dbr;
+            return reader.GetBoolean(key);
         }
 
         protected static List<T> ListFromReader<T>(DbDataReader reader, Func<DbDataReader, T> func)

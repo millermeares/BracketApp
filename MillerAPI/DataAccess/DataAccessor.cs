@@ -22,7 +22,7 @@ namespace MillerAPI.DataAccess
                 conn.Open();
                 return func(conn);
             }
-            catch (Exception ex)
+            catch (MySqlException ex)
             {
                 RecordError(ex);
                 throw;
@@ -43,11 +43,11 @@ namespace MillerAPI.DataAccess
                     return result;
                 }catch (Exception trans_ex)
                 {
+                    RecordError(trans_ex);
                     transaction.Rollback();
-                    System.Diagnostics.Debug.WriteLine(trans_ex.Message);
                     throw;
                 }
-            }catch(Exception ex)
+            }catch(MySqlException ex)
             {
                 RecordError(ex);
                 throw;
@@ -55,6 +55,21 @@ namespace MillerAPI.DataAccess
         }
 
         public void RecordError(Exception e, string category = "database", string connectionID = "default")
+        {
+            try
+            {
+                using MySqlConnection conn = new MySqlConnection(_config.GetConnectionString(connectionID));
+                using DbCommand cmd = new MySqlCommand(ErrorDBString.LogException, conn);
+                conn.Open();
+                e.ExceptionParameters(cmd, category);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                //todo: do something with this exception.
+            }
+        }
+        public void RecordError(MySqlException e, string category = "database", string connectionID = "default")
         {
             try
             {

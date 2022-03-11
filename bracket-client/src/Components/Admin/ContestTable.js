@@ -1,9 +1,9 @@
-import {Table} from 'react-bootstrap';
+import {Table, Button} from 'react-bootstrap';
 import {useState, useEffect} from 'react';
 import api from '../Services/api';
 import {useAuth} from '../Entry/Auth';
 import {v4 as uuid} from 'uuid';
-import ContestRow from './ContestRow';
+import ContestRow from './ContestRow'
 function ContestTable({contests, onTournamentDeleted, setEditingTournamentID}) {
     let auth = useAuth();
 
@@ -44,18 +44,21 @@ function ContestTable({contests, onTournamentDeleted, setEditingTournamentID}) {
         return <div>Loading...</div>
     }
     return (
-        <Table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Edit Competitors</th>
-                    <th>Delete Tournament</th>
-                </tr>
-            </thead>
-            <tbody>
-                {makeContestComponents(contests)}
-            </tbody>
-        </Table>
+        <div>
+            <Table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Competitors</th>
+                        <th>Delete Tournament</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {makeContestComponents(contests)}
+                </tbody>
+            </Table>
+        </div>
+        
     )
 }
 export default ContestTable;
