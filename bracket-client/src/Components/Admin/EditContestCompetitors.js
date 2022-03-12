@@ -68,23 +68,29 @@ function EditContestCompetitors({id, name, finalized, onSuccessfulFinalize}) {
             console.log(error);
         });
     }
-
+    let sending_finalized_request = false;
     let handleFinalize = () => {
+        if(sending_finalized_request) return;
         if(competitors.length != 64) {
             alert("must have 64 competitors");
             return;
-        }
+        }        
+        sending_finalized_request = true;
         let obj = {
             TournamentID: id,
             Token: auth.token
         }
+
         api.post("/finalizetournament", obj).then(response => {
+            sending_finalized_request = false;
             if(!response.data.valid) {
                 alert(response.data.payload);
                 return;
             }
+            alert('finalize success');
             onSuccessfulFinalize(id);
         }).catch(error => {
+            sending_finalized_request = false;
             console.log(error);            
         })
     }

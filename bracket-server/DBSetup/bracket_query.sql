@@ -48,8 +48,9 @@ SELECT tournamentID, name, creator, _fk_type, tournamentFinalized,
         LEFT OUTER JOIN competitor_tournament c ON c.competitorID=p._fk_competitor AND t.tournamentID=c._fk_tournament
         LEFT OUTER JOIN bracket_game_prediction bgp ON g.gameID=bgp._fk_game AND bgp._fk_bracket=b.bracketID
 WHERE b.bracketID=@bracketID
-ORDER BY g._fk_tournamentRound, gameDivision, g.gameID
+ORDER BY g._fk_tournamentRound, gameDivision, g.gameID;
 
 
 
-select * from gameID where 
+select * from tournament_game;
+

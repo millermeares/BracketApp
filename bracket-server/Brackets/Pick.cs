@@ -16,5 +16,10 @@ namespace bracket_server.Brackets
             GameID = gameID;
             CompetitorID = competitorID;
         }
+
+        public static Pick MakeEmpty()
+        {
+            return new Pick(string.Empty, string.Empty, string.Empty, string.Empty);
+        }
     }
 }

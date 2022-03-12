@@ -167,6 +167,10 @@ namespace bracket_server.Tournaments
             return ChampionshipGame.FullyPopulated();
         }
 
+        public List<PickChange> GetPickChanges(Pick p)
+        {
+            return new List<PickChange>(); //todo
+        }
 
     }
 }

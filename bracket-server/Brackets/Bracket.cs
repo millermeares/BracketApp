@@ -51,5 +51,10 @@ namespace bracket_server.Brackets
         {
             return Tournament.FullyPopulated();
         }
+
+        public List<PickChange> GetPickChanges(Pick p)
+        {
+            return Tournament.GetPickChanges(p);
+        }
     }
 }

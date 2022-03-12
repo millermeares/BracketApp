@@ -90,6 +90,23 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult SavePick(PickAuthToken pick_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = user_dal.UserIDFromToken(pick_token.Token);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+
+                Pick pick = pick_token.Pick;
+                Bracket b = tournament_dal.GetBracket(pick.BracketID);
+                throw new NotImplementedException();
+                // ok so 
+            }catch(Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
         public override void AddRoutes()
         {
             AddGet("/faketournament", FakeTournament);
@@ -98,6 +115,7 @@ namespace bracket_server.Routing
             AddGet("/getseeddata", GetSeedData);
             AddPost("/neworlatestbracket", NewOrLatestBracket);
             AddPost("/finalizecontestentry", FinalizeContestEntry);
+            AddPost("/savepick", SavePick);
         }
 
         
