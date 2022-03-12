@@ -398,11 +398,11 @@ namespace bracket_server.Tournaments
             return bracket;
         }
 
-        public GenericID GetLatestBracketIDForTournamentForUser(UserID user_id, string tournamentID)
+        public GenericID GetUnfinishedLatestBracketIDForTournamentForUser(UserID user_id, string tournamentID)
         {
             return _dataAccess.DoQuery(conn =>
             {
-                using DbCommand cmd = GetCommand(TournamentDBString.GetLatestBracketForTournamentForUser, conn);
+                using DbCommand cmd = GetCommand(TournamentDBString.GetLatestUnfinishedBracketForTournamentForUser, conn);
                 cmd.AddParameter("@userID", user_id.ID);
                 cmd.AddParameter("@tournamentID", tournamentID);
                 string bracket_id = ScalarStringFromReader(cmd);

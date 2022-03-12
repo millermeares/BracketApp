@@ -173,10 +173,10 @@ namespace bracket_server.Tournaments
         ORDER BY creationTime DESC LIMIT 1;
             ";
 
-        internal static string GetLatestBracketForTournamentForUser =
+        internal static string GetLatestUnfinishedBracketForTournamentForUser =
             @"
         SELECT bracketID FROM user_bracket b 
-        WHERE b._fk_user=@userID AND _fk_tournament=@tournamentID
+        WHERE b._fk_user=@userID AND _fk_tournament=@tournamentID AND completed IS FALSE
         ORDER BY creationTime DESC LIMIT 1;
         ";
 

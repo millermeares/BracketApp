@@ -19,7 +19,7 @@ namespace bracket_server.Tournaments
 
         public string GetActiveBracketingTournamentID();
 
-        public GenericID GetLatestBracketIDForTournamentForUser(UserID user_id, string tournamentID);
+        public GenericID GetUnfinishedLatestBracketIDForTournamentForUser(UserID user_id, string tournamentID);
 
         public Bracket GetBracket(string bracketID);
 

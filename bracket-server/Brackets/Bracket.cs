@@ -33,7 +33,7 @@ namespace bracket_server.Brackets
 
         public static Bracket GetForNewOrLatestBracketForUser(UserID userID, string live_tournament_id, ITournamentDAL tournament_dal)
         {
-            GenericID bracket_id = tournament_dal.GetLatestBracketIDForTournamentForUser(userID, live_tournament_id);
+            GenericID bracket_id = tournament_dal.GetUnfinishedLatestBracketIDForTournamentForUser(userID, live_tournament_id);
             if(bracket_id.IsEmpty())
             {
                 NewBracket new_bracket = new NewBracket(live_tournament_id, userID);
