@@ -1,4 +1,6 @@
-﻿namespace bracket_server.Tournaments
+﻿using bracket_server.Brackets;
+
+namespace bracket_server.Tournaments
 {
     public class Game
     {
@@ -33,7 +35,9 @@
         private void SwapCompetitorsToMakeBetterSeedNumber1()
         {
             if (_competitor1 == null || _competitor2 == null) return;
+            if (LeftGame == null && RightGame == null) return; // make this only happen for base games.
             if (_competitor2.Seed > _competitor1.Seed) return;
+
             // swap.
             var temp = _competitor2;
             _competitor2 = _competitor1;
@@ -162,6 +166,32 @@
             bool right_game_populated = RightGame == null ? true : RightGame.FullyPopulated();
             return right_game_populated && left_game_populated;
         }
+
+        public bool HasWinner()
+        {
+            return Winner != null;
+        }
+
+        public void SetWinnerFromCompetitors(string competitorID)
+        {
+            if (Competitor1 == null && Competitor2 == null) throw new ArgumentException("null competitors when settings winners");
+            if(Competitor1 != null && competitorID == Competitor1.ID)
+            {
+                Winner = Competitor1;
+            } else if(Competitor2 != null && competitorID == Competitor2.ID)
+            {
+                Winner = Competitor2;
+            }
+        }
+
+        public bool HasCompetitor(string competitorID)
+        {
+            if (Competitor1 != null && Competitor1.ID == competitorID) return true;
+            if (Competitor2 != null && Competitor2.ID == competitorID) return true;
+            return false;
+        }
+
+        
 
 
     }

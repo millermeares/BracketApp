@@ -54,3 +54,4 @@ ORDER BY g._fk_tournamentRound, gameDivision, g.gameID;
 
 select * from tournament_game;
 
+select * 

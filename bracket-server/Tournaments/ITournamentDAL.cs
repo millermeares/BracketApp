@@ -29,6 +29,8 @@ namespace bracket_server.Tournaments
 
         public bool FinishBracket(Bracket bracket);
 
+        public bool SavePickChanges(List<PickChange> pick_changes);
+
 
     }
 }

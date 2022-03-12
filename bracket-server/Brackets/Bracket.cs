@@ -52,9 +52,9 @@ namespace bracket_server.Brackets
             return Tournament.FullyPopulated();
         }
 
-        public List<PickChange> GetPickChanges(Pick p)
+        public List<PickChange> GetPickChanges(PickChange pc)
         {
-            return Tournament.GetPickChanges(p);
+            return Tournament.GetPickChanges(pc);
         }
     }
 }

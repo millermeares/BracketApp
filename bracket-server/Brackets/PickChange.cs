@@ -8,5 +8,9 @@
         {
             Add = add;
         } 
+        public static new PickChange MakeEmpty()
+        {
+            return new PickChange("", "", "", "", false);
+        }
     }
 }

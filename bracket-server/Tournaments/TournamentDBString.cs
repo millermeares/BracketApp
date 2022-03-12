@@ -1,4 +1,5 @@
-﻿using MillerAPI.DataAccess;
+﻿using bracket_server.Brackets;
+using MillerAPI.DataAccess;
 using System.Data.Common;
 using System.Text;
 
@@ -200,5 +201,68 @@ namespace bracket_server.Tournaments
         UPDATE user_bracket SET completed=TRUE
         WHERE _fk_user=@userID AND _fk_tournament=@tournamentID AND bracketID=@bracketID;
         ";
+
+        private static string _insertPickChangesBase = 
+            @"
+        INSERT INTO bracket_game_prediction(_fk_bracket, _fk_tournament, _fk_game, _fk_competitor, pickTime)
+        VALUES
+        {0};";
+
+        private static string _deletePickChangesBase = 
+            @"
+        DELETE FROM bracket_game_prediction WHERE (_fk_bracket, _fk_game) IN ({0});
+        ";
+
+        private static string MakeInsertPickChangesString(List<PickChange> changes, DbCommand cmd)
+        {
+            StringBuilder sb_val = new StringBuilder();
+            for(int i = 0; i < changes.Count; i++)
+            {
+                string p_bracket_name = $"@IBracketPick{i}";
+                string p_comp_name = $"@ICompPick{i}";
+                string p_game_name = $"@IGamePick{i}";
+                string p_tournament_name = $"@ITournamentPick{i}";
+                cmd.AddParameter(p_bracket_name, changes[i].BracketID);
+                cmd.AddParameter(p_comp_name, changes[i].CompetitorID);
+                cmd.AddParameter(p_game_name, changes[i].GameID);
+                cmd.AddParameter(p_tournament_name, changes[i].TournamentID);
+                sb_val.Append($"({p_bracket_name}, {p_tournament_name}, {p_game_name}, {p_comp_name}, now(6))");
+                if(i != changes.Count - 1)
+                {
+                    sb_val.Append(",");
+                }
+            }
+            return string.Format(_insertPickChangesBase, sb_val.ToString());
+        }
+
+        private static string MakeDeletePickChangesString(List<PickChange> changes, DbCommand cmd)
+        {
+            StringBuilder sb_val = new StringBuilder();
+            for (int i = 0; i < changes.Count; i++)
+            {
+                string p_bracket_name = $"@DBracketPick{i}";
+                string p_game_name = $"@DGamePick{i}";
+                cmd.AddParameter(p_bracket_name, changes[i].BracketID);
+                cmd.AddParameter(p_game_name, changes[i].GameID);
+                sb_val.Append($"({p_bracket_name},{p_game_name})");
+            }
+            return string.Format(_insertPickChangesBase, sb_val.ToString());
+        }
+
+        internal static string SavePickChanges(List<PickChange> changes, DbCommand cmd)
+        {
+            List<PickChange> insert_changes = changes.Where(c => c.Add).ToList();
+            List<PickChange> delete_changes = changes.Where(c => !c.Add).ToList();
+            StringBuilder sb = new StringBuilder();
+            if(insert_changes.Count > 0)
+            {
+                sb.Append(MakeInsertPickChangesString(insert_changes, cmd));
+            }
+            if(delete_changes.Count > 0)
+            {
+                sb.Append(MakeDeletePickChangesString(delete_changes, cmd));
+            }
+            return sb.ToString();
+        }
     }
 }

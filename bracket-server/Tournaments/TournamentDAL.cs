@@ -430,5 +430,21 @@ namespace bracket_server.Tournaments
                 return cmd.ExecuteNonQuery() > 0;
             });
         }
+
+        public bool SavePickChanges(List<PickChange> pick_changes)
+        {
+            return _dataAccess.DoTransaction((conn, trans) =>
+            {
+                using DbCommand cmd = GetCommand("", conn, trans);
+                cmd.CommandText = TournamentDBString.SavePickChanges(pick_changes, cmd);
+                int rows = cmd.ExecuteNonQuery();
+                if(rows != pick_changes.Count)
+                {
+                    throw new Exception($"Unexpected amount of affected rows {rows} when saving picks");
+                }
+                return true;
+            });
+        }
+
     }
 }

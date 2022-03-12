@@ -28,8 +28,29 @@ function FillOutBracket() {
         return <div>Loading Bracket...</div>
     }
 
+    let submitting_bracket = false;
+    let submitBracket = () => {
+        if(submitting_bracket) return;
+        submitting_bracket = true;
+        api.post("/finalizecontestentry", obj).then(response => {
+            submitting_bracket = false;
+            if(!response.data.valid) {
+                alert(response.data.payload);
+                return;
+            }
+            alert('submit successful');
+            setFillingOutBracket(response.data.payload);
+        }).catch(err => {
+            submitting_bracket = false;
+        });
+    }
+
     return (
-        <UserBracket {...fillingOutBracket}/>
+        <div>
+            <Button onClick={submitBracket}>Submit Bracket</Button>
+            <UserBracket {...fillingOutBracket} />
+        </div>
+        
     )
 }
 export default FillOutBracket;

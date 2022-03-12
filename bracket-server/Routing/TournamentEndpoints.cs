@@ -79,7 +79,7 @@ namespace bracket_server.Routing
                 Bracket bracket = tournament_dal.GetBracket(id_token.ID);
                 if(!bracket.SaveableState())
                 {
-                    throw new Exception("should not be allowed to save");
+                    return ErrorResult("fill out entire bracket before saving");
                 }
                 tournament_dal.FinishBracket(bracket);
                 return NewOrLatestBracket(id_token.Token, user_dal, tournament_dal); // i like this.
@@ -96,11 +96,10 @@ namespace bracket_server.Routing
             {
                 UserID user_id = user_dal.UserIDFromToken(pick_token.Token);
                 if (user_id.IsEmpty()) return Results.Unauthorized();
-
-                Pick pick = pick_token.Pick;
-                Bracket b = tournament_dal.GetBracket(pick.BracketID);
-                throw new NotImplementedException();
-                // ok so 
+                Bracket b = tournament_dal.GetBracket(pick_token.PickChange.BracketID);
+                List<PickChange> pick_changes = b.GetPickChanges(pick_token.PickChange);
+                bool success = tournament_dal.SavePickChanges(pick_changes);
+                return EmptyValidResult();
             }catch(Exception ex)
             {
                 return ResultFromException(user_dal.GetDataAccess(), ex);

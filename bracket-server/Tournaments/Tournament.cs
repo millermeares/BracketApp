@@ -64,7 +64,7 @@ namespace bracket_server.Tournaments
             if(parent_game == null) throw new Exception($"could not find parent game for {p.GameID}.");
             Game? game = parent_game.GetImmediateChildGame(p.GameID);
             if (game == null) throw new Exception("could not find game in immediate children but it should really be there.");
-            SetGameWinner(game, p);
+            SetGameWinnerFromDict(game, p);
             if(parent_game.IsLeft(p.GameID))
             {
                 parent_game.Competitor1 = _competitorDictionary[p.CompetitorID];
@@ -75,7 +75,7 @@ namespace bracket_server.Tournaments
             }
         }
 
-        private void SetGameWinner(Game game, Pick p)
+        private void SetGameWinnerFromDict(Game game, Pick p)
         {
             game.Winner = _competitorDictionary[p.CompetitorID];
         }
@@ -167,10 +167,78 @@ namespace bracket_server.Tournaments
             return ChampionshipGame.FullyPopulated();
         }
 
+        private List<PickChange> PickChangesChampGame(Pick p)
+        {
+            List<PickChange> changes = new List<PickChange>();
+            changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true));
+            if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID != p.GameID)
+            {
+                changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, ChampionshipGame.Winner.ID, false));
+            }
+            return changes;
+        }
+
         public List<PickChange> GetPickChanges(Pick p)
         {
-            return new List<PickChange>(); //todo
+            if(p.GameID == ChampionshipGame.ID)
+            {
+                return PickChangesChampGame(p);
+            }
+            List<PickChange> pick_changes = new List<PickChange>();
+            Game? parent_game = ChampionshipGame.FindParentGame(p.GameID);
+            if (parent_game == null) throw new ArgumentException("could not find parent game when getting pick changes.");
+
+            Game? outcome_game = parent_game.GetImmediateChildGame(p.GameID);
+            if(outcome_game == null) throw new ArgumentException();
+            TournamentCompetitor winner = _competitorDictionary[p.CompetitorID];
+            if(parent_game.IsLeft(p.GameID))
+            {
+                bool had_different_winner = parent_game.Competitor1 != null && parent_game.Competitor1 != winner;
+                if(had_different_winner)
+                {
+                    pick_changes.AddRange(RemoveFromTree(outcome_game, parent_game.Competitor1, p.BracketID));
+                }
+            } else
+            {
+                bool had_different_winner = parent_game.Competitor2 != null && parent_game.Competitor2 != winner;
+                if (had_different_winner)
+                {
+                    pick_changes.AddRange(RemoveFromTree(outcome_game, parent_game.Competitor2, p.BracketID));
+                }
+            }
+            pick_changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true));
+            return pick_changes;
         }
+
+        // we want to remove the old winner though outcome game. 
+        // if a competitor is present in the parent, that means we need to add a removal pick change for the child game. 
+        private List<PickChange> RemoveFromTree(Game outcomeGame, TournamentCompetitor competitor, string bracketID)
+        {
+            if (outcomeGame == ChampionshipGame)
+            {
+                // ok.. what here? 
+                if (ChampionshipGame.Winner != competitor)
+                {
+                    return new List<PickChange>();
+                }
+                ChampionshipGame.Winner = null;
+                PickChange champ_change = new PickChange(bracketID, ID, ChampionshipGame.ID, competitor.ID, false);
+                return new List<PickChange> { champ_change };
+            }
+
+            // traveling up tree. 
+            // starting at the outcome game that changed. 
+            Game? parent_game = ChampionshipGame.FindParentGame(outcomeGame.ID);
+            if (parent_game == null) throw new ArgumentException();
+            if(parent_game.HasCompetitor(competitor.ID))
+            {
+                List<PickChange> changes = new List<PickChange>() { new PickChange(bracketID, ID, outcomeGame.ID, competitor.ID, false) };
+                changes.AddRange(RemoveFromTree(parent_game, competitor, bracketID));
+            }
+            return new List<PickChange>();
+        }
+
+        
 
     }
 }
