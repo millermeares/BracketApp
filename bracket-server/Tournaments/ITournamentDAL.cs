@@ -26,7 +26,8 @@ namespace bracket_server.Tournaments
         public Bracket GetLatestBracketForUser(UserID userID);
 
         public bool InsertBracket(NewBracket bracket);
-        
+
+        public bool FinishBracket(Bracket bracket);
 
 
     }

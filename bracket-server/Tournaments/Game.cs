@@ -152,6 +152,16 @@
             return LeftGame != null && LeftGame.ID == gameID;
         }
 
+        public bool FullyPopulated()
+        {
+            if(Competitor1 == null || Competitor2 == null)
+            {
+                return false;
+            }
+            bool left_game_populated = LeftGame == null ? true : LeftGame.FullyPopulated();
+            bool right_game_populated = RightGame == null ? true : RightGame.FullyPopulated();
+            return right_game_populated && left_game_populated;
+        }
 
 
     }

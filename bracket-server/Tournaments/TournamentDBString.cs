@@ -193,6 +193,12 @@ namespace bracket_server.Tournaments
 
         internal static string InsertNewBracket =
             @"INSERT INTO user_bracket(_fk_user, _fk_tournament, bracketID, creationTime)
-            VALUES(@owner, @tournamentID, @bracketID, now(6));";
+            VALUES(@userID, @tournamentID, @bracketID, now(6));";
+
+        internal static string CompleteBracket = 
+        @"
+        UPDATE user_bracket SET completed=TRUE
+        WHERE _fk_user=@userID AND _fk_tournament=@tournamentID AND bracketID=@bracketID;
+        ";
     }
 }

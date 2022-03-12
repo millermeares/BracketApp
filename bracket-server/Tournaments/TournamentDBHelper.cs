@@ -39,7 +39,7 @@ namespace bracket_server.Tournaments
         public static void BracketParameters(this Bracket bracket, DbCommand cmd)
         {
             cmd.AddParameter("@bracketID", bracket);
-            cmd.AddParameter("@owner", bracket.Owner.ID);
+            cmd.AddParameter("@userID", bracket.Owner.ID);
             cmd.AddParameter("@tournamentID", bracket.Tournament.ID);
             cmd.AddParameter("@bracketCompleted", bracket.Completed);
             cmd.AddParameter("@champTotalPoints", bracket.ChampTotalPoints);
@@ -47,7 +47,7 @@ namespace bracket_server.Tournaments
         public static void NewBracketParameters(this NewBracket bracket, DbCommand cmd)
         {
             cmd.AddParameter("@bracketID", bracket.ID);
-            cmd.AddParameter("@owner", bracket.Owner.ID);
+            cmd.AddParameter("@userID", bracket.Owner.ID);
             cmd.AddParameter("@tournamentID", bracket.TournamentID);
             cmd.AddParameter("@bracketCompleted", false);
             cmd.AddParameter("@champTotalPoints", 120);

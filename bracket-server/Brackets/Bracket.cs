@@ -46,5 +46,10 @@ namespace bracket_server.Brackets
             }
             return tournament_dal.GetBracket(bracket_id.ID);
         }
+
+        public bool SaveableState()
+        {
+            return Tournament.FullyPopulated();
+        }
     }
 }

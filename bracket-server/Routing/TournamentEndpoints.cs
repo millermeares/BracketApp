@@ -68,7 +68,26 @@ namespace bracket_server.Routing
             {
                 return ResultFromException(user_dal.GetDataAccess(), ex);
             }
+        }
 
+        public static IResult FinalizeContestEntry(IDAuthToken id_token, ITournamentDAL tournament_dal, IUserDAL user_dal)
+        {
+            try
+            {
+                UserID user_id = user_dal.UserIDFromToken(id_token.Token);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                Bracket bracket = tournament_dal.GetBracket(id_token.ID);
+                if(!bracket.SaveableState())
+                {
+                    throw new Exception("should not be allowed to save");
+                }
+                tournament_dal.FinishBracket(bracket);
+                return NewOrLatestBracket(id_token.Token, user_dal, tournament_dal); // i like this.
+            }
+            catch (Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
         }
 
         public override void AddRoutes()
@@ -78,6 +97,7 @@ namespace bracket_server.Routing
             AddPost("/getcompetitors", GetCompetitors);
             AddGet("/getseeddata", GetSeedData);
             AddPost("/neworlatestbracket", NewOrLatestBracket);
+            AddPost("/finalizecontestentry", FinalizeContestEntry);
         }
 
         

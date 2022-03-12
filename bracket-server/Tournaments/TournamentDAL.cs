@@ -391,6 +391,10 @@ namespace bracket_server.Tournaments
                 }
             }
             bracket.Tournament.ApplyPicks(picks);
+            if(bracket.IsEmpty())
+            {
+                throw new Exception("bracket should not be empty here.");
+            }
             return bracket;
         }
 
@@ -414,6 +418,16 @@ namespace bracket_server.Tournaments
                 cmd.AddParameter("@userID", userID.ID);
                 using DbDataReader reader = cmd.ExecuteReader();
                 return SingleBracketFromReader(reader);
+            });
+        }
+
+        public bool FinishBracket(Bracket bracket)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.CompleteBracket, conn);
+                bracket.BracketParameters(cmd);
+                return cmd.ExecuteNonQuery() > 0;
             });
         }
     }

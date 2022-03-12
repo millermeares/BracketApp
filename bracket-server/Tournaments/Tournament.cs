@@ -161,6 +161,12 @@ namespace bracket_server.Tournaments
             return 0;
         }
 
+        public bool FullyPopulated()
+        {
+            if (ChampionshipGame.Winner == null) return false;
+            return ChampionshipGame.FullyPopulated();
+        }
+
 
     }
 }
