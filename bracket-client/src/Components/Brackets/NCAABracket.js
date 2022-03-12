@@ -2,19 +2,19 @@ import Game from './Game'
 import Team from './Game'
 import '../../Styling/BracketCSS.css'
 import FinalGame from './FinalGame'
-import {v4 as uuid} from 'uuid'
+import { v4 as uuid } from 'uuid'
 import Finalist from './Finalist'
-import {useState} from 'react'
+import { useState } from 'react'
 
 
 function gamesOfDepth(parentGame, depth) {
-    if(depth == 0) {
+    if (depth == 0) {
         return [parentGame];
     }
     let children = [];
     // left games being first actually matters.
-    children.push(...gamesOfDepth(parentGame.leftGame, depth-1));
-    children.push(...gamesOfDepth(parentGame.rightGame, depth-1));
+    children.push(...gamesOfDepth(parentGame.leftGame, depth - 1));
+    children.push(...gamesOfDepth(parentGame.rightGame, depth - 1));
     return children;
 }
 
@@ -22,9 +22,9 @@ function gameOfDepthExists(championshipGame, depth) {
     let game = championshipGame;
     // at depth of 1, i check left game. 
     // at depth of 2, i go to left game, then check left game.
-    while(depth > 0) {
+    while (depth > 0) {
         game = game.leftGame;
-        if(!game) {
+        if (!game) {
             return false;
         }
         depth--;
@@ -35,7 +35,7 @@ function gameOfDepthExists(championshipGame, depth) {
 function gamesByDepth(championshipGame) {
     let depth = 1;
     let obj = {};
-    while(gameOfDepthExists(championshipGame, depth)) {
+    while (gameOfDepthExists(championshipGame, depth)) {
         let depth_games = gamesOfDepth(championshipGame, depth);
         obj[depth] = depth_games;
         depth++;
@@ -44,11 +44,11 @@ function gamesByDepth(championshipGame) {
 }
 
 function getParentGame(parentGame, id) {
-    if(parentGame == null) return null;
-    if(!parentGame.leftGame || !parentGame.rightGame) return null;
-    if(parentGame.leftGame.id == id || parentGame.rightGame.id == id) return parentGame;
+    if (parentGame == null) return null;
+    if (!parentGame.leftGame || !parentGame.rightGame) return null;
+    if (parentGame.leftGame.id == id || parentGame.rightGame.id == id) return parentGame;
     let child_result = getParentGame(parentGame.leftGame, id);
-    if(child_result == null) {
+    if (child_result == null) {
         child_result = getParentGame(parentGame.rightGame, id);
     }
     return child_result;
@@ -56,8 +56,8 @@ function getParentGame(parentGame, id) {
 
 
 function getTeamInGameMatchingId(game, id) {
-    if(game.competitor1 != null && game.competitor1.id == id) return game.competitor1;
-    if(game.competitor2 != null && game.competitor2.id == id) return game.competitor2;
+    if (game.competitor1 != null && game.competitor1.id == id) return game.competitor1;
+    if (game.competitor2 != null && game.competitor2.id == id) return game.competitor2;
     return null;
 }
 
@@ -75,32 +75,43 @@ function handleRemoveNonWinners(champGame, gameId) {
 }
 
 
-function NCAABracket({ id, name, eventStart, eventEnd, championshipGame }) {
+function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeSetWinnerPromise }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
+    let sending_request = false;
     let handleSetWinner = (gameId, winnerId) => {
-        let parentGame = getParentGame(champGame, gameId);
-        let winner_is_top = parentGame.leftGame.id == gameId;
-        if(winner_is_top) {
-            let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.leftGame, winnerId);
-            if(team_to_set_as_competitor == parentGame.competitor1) {
-                return;
+        if(sending_request) return; // don't want to request more than once.
+        sending_request = true;
+        beforeSetWinnerPromise(gameId, winnerId).then(success => {
+            sending_request = false;
+            console.log(success);
+            if(!success) return; // if not success, i don't want it to affect anything.
+            let parentGame = getParentGame(champGame, gameId);
+            let winner_is_top = parentGame.leftGame.id == gameId;
+            if (winner_is_top) {
+                let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.leftGame, winnerId);
+                if (team_to_set_as_competitor == parentGame.competitor1) {
+                    return;
+                }
+                if (parentGame.competitor1 == champGame.winner) {
+                    champGame.winner = null; // handle clearing winner too.
+                }
+                parentGame.competitor1 = team_to_set_as_competitor;
+            } else {
+                let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.rightGame, winnerId);
+                if (team_to_set_as_competitor == parentGame.competitor2) {
+                    return;
+                }
+                if (parentGame.competitor2 == champGame.winner) {
+                    champGame.winner = null; // handle clearing winner too.
+                }
+                parentGame.competitor2 = team_to_set_as_competitor;
             }
-            if(parentGame.competitor1 == champGame.winner) {
-                champGame.winner = null; // handle clearing winner too.
-            }
-            parentGame.competitor1 = team_to_set_as_competitor;
-        } else {
-            let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.rightGame, winnerId);
-            if(team_to_set_as_competitor == parentGame.competitor2) {
-                return;
-            }
-            if(parentGame.competitor2 == champGame.winner) {
-                champGame.winner = null; // handle clearing winner too.
-            }
-            parentGame.competitor2 = team_to_set_as_competitor;
-        }
-        handleRemoveNonWinners(champGame, gameId);
-        setChampionshipGame({...champGame});
+            handleRemoveNonWinners(champGame, gameId);
+            setChampionshipGame({ ...champGame });
+        }).catch(err => {
+            console.log(err);
+            sending_request = true;
+        })
     }
 
     let handleSetChampWinner = (winnerId) => {

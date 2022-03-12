@@ -170,6 +170,10 @@ namespace bracket_server.Tournaments
         private List<PickChange> PickChangesChampGame(Pick p)
         {
             List<PickChange> changes = new List<PickChange>();
+            if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID == p.CompetitorID)
+            {
+                return changes; // winner already this.
+            }
             changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true));
             if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID != p.GameID)
             {
@@ -206,7 +210,12 @@ namespace bracket_server.Tournaments
                     pick_changes.AddRange(RemoveFromTree(outcome_game, parent_game.Competitor2, p.BracketID));
                 }
             }
-            pick_changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true));
+            bool change_necessary = !parent_game.HasCompetitor(p.CompetitorID);
+            if (change_necessary)
+            {
+                pick_changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true));
+            }
+
             return pick_changes;
         }
 
@@ -234,6 +243,7 @@ namespace bracket_server.Tournaments
             {
                 List<PickChange> changes = new List<PickChange>() { new PickChange(bracketID, ID, outcomeGame.ID, competitor.ID, false) };
                 changes.AddRange(RemoveFromTree(parent_game, competitor, bracketID));
+                return changes;
             }
             return new List<PickChange>();
         }

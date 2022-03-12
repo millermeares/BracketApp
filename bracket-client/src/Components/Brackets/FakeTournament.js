@@ -22,9 +22,12 @@ function FakeTournament() {
     if(!bracket) {
         return <div>Loading...</div>
     }
+    let bracket_props = {...bracket, beforeSetWinnerPromise: async (gameId, winnerId) => {
+        return true;
+    }}
     return (
         <div>
-            <NCAABracket {...bracket} />
+            <NCAABracket {...bracket_props} />
         </div>
     );
 }

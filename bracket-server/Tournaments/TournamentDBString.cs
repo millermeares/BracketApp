@@ -245,8 +245,12 @@ namespace bracket_server.Tournaments
                 cmd.AddParameter(p_bracket_name, changes[i].BracketID);
                 cmd.AddParameter(p_game_name, changes[i].GameID);
                 sb_val.Append($"({p_bracket_name},{p_game_name})");
+                if(i != changes.Count - 1)
+                {
+                    sb_val.Append(",");
+                }
             }
-            return string.Format(_insertPickChangesBase, sb_val.ToString());
+            return string.Format(_deletePickChangesBase, sb_val.ToString());
         }
 
         internal static string SavePickChanges(List<PickChange> changes, DbCommand cmd)
@@ -254,14 +258,15 @@ namespace bracket_server.Tournaments
             List<PickChange> insert_changes = changes.Where(c => c.Add).ToList();
             List<PickChange> delete_changes = changes.Where(c => !c.Add).ToList();
             StringBuilder sb = new StringBuilder();
-            if(insert_changes.Count > 0)
-            {
-                sb.Append(MakeInsertPickChangesString(insert_changes, cmd));
-            }
-            if(delete_changes.Count > 0)
+            if (delete_changes.Count > 0)
             {
                 sb.Append(MakeDeletePickChangesString(delete_changes, cmd));
             }
+            if (insert_changes.Count > 0)
+            {
+                sb.Append(MakeInsertPickChangesString(insert_changes, cmd));
+            }
+            
             return sb.ToString();
         }
     }

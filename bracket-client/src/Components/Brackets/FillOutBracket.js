@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react';
 import {useAuth} from '../Entry/Auth'
 import api from '../Services/api'
 import UserBracket from './UserBracket';
+import {Button} from 'react-bootstrap';
 function FillOutBracket() {
     const [fillingOutBracket, setFillingOutBracket] = useState(null);
 
@@ -9,7 +10,6 @@ function FillOutBracket() {
 
     useEffect(() => {
         if(!fillingOutBracket) {
-            
             api.post("/neworlatestbracket", auth.token)
             .then(response => {
                 if(!response.data.valid) {
@@ -32,6 +32,10 @@ function FillOutBracket() {
     let submitBracket = () => {
         if(submitting_bracket) return;
         submitting_bracket = true;
+        let obj = {
+            ID: fillingOutBracket.id, 
+            Token: auth.token
+        }
         api.post("/finalizecontestentry", obj).then(response => {
             submitting_bracket = false;
             if(!response.data.valid) {
@@ -41,6 +45,7 @@ function FillOutBracket() {
             alert('submit successful');
             setFillingOutBracket(response.data.payload);
         }).catch(err => {
+            console.log(err);
             submitting_bracket = false;
         });
     }

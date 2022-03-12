@@ -96,8 +96,12 @@ namespace bracket_server.Routing
             {
                 UserID user_id = user_dal.UserIDFromToken(pick_token.Token);
                 if (user_id.IsEmpty()) return Results.Unauthorized();
-                Bracket b = tournament_dal.GetBracket(pick_token.PickChange.BracketID);
-                List<PickChange> pick_changes = b.GetPickChanges(pick_token.PickChange);
+                Bracket b = tournament_dal.GetBracket(pick_token.Pick.BracketID);
+                List<PickChange> pick_changes = b.GetPickChanges(pick_token.Pick);
+                if(pick_changes.Count == 0) // already same
+                {
+                    return EmptyValidResult();
+                }
                 bool success = tournament_dal.SavePickChanges(pick_changes);
                 return EmptyValidResult();
             }catch(Exception ex)

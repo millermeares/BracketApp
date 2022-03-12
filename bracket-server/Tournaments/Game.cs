@@ -35,7 +35,7 @@ namespace bracket_server.Tournaments
         private void SwapCompetitorsToMakeBetterSeedNumber1()
         {
             if (_competitor1 == null || _competitor2 == null) return;
-            if (LeftGame == null && RightGame == null) return; // make this only happen for base games.
+            if (LeftGame != null || RightGame != null) return; // make this only happen for base games.
             if (_competitor2.Seed > _competitor1.Seed) return;
 
             // swap.

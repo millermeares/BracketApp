@@ -1,6 +1,6 @@
 # undo FINALIZE script
-
-set @tournamentID="5089058a-5e2e-4a30-a310-26f3b607da6a";
+select * from tournament;
+set @tournamentID="d9bc21d3-ddbb-488b-ad0c-b998593a5ce4";
 UPDATE tournament SET tournamentFinalized=0 WHERE tournamentID=@tournamentID;
 SET FOREIGN_KEY_CHECKS=0;
 delete from tournament_game where _fk_tournament=@tournamentID;
