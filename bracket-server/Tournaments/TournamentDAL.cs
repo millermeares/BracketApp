@@ -1,4 +1,5 @@
-﻿using MillerAPI.DataAccess;
+﻿using bracket_server.Brackets;
+using MillerAPI.DataAccess;
 using System.Data.Common;
 
 namespace bracket_server.Tournaments
@@ -219,7 +220,6 @@ namespace bracket_server.Tournaments
             {
                 using DbCommand cmd = GetCommand("", conn);
                 cmd.CommandText = TournamentDBString.FinalizeTournament(tournament, cmd);
-                System.Diagnostics.Debug.WriteLine(cmd.CommandText);
                 tournament.TournamentParameters(cmd);
                 int rows = cmd.ExecuteNonQuery();
                 // total games + total competitors in games + one row to finalize the tournament.
@@ -229,6 +229,191 @@ namespace bracket_server.Tournaments
                     throw new Exception($"Unexpected number of affected rows when finalizing tournament {expected_rows}");
                 }
                 return true;
+            });
+        }
+
+        public string GetStringParamValue(string key)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.GetStringParam, conn);
+                cmd.AddParameter("@key", key);
+                return ScalarStringFromReader(cmd);
+            });
+        }
+
+        public string GetActiveBracketingTournamentID()
+        {
+            return GetStringParamValue("activetournament");
+        }
+
+        public bool InsertStringParamValue(string key, string value)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.InsertStringParam, conn);
+                cmd.AddParameter("@key", key);
+                cmd.AddParameter("@value", value);
+                return cmd.ExecuteNonQuery() > 0;
+            });
+        }
+
+        public bool InsertActiveBracketingTournamentID(string tournamentID)
+        {
+            return InsertStringParamValue("activetournament", tournamentID);
+        }
+
+        public bool InsertBracket(NewBracket bracket)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.InsertNewBracket, conn);
+                bracket.NewBracketParameters(cmd);
+                return cmd.ExecuteNonQuery() > 0;
+            });
+        }
+
+        public Bracket GetBracket(string bracketID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.GetBracketByID(), conn);
+                cmd.AddParameter("@bracketID", bracketID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return SingleBracketFromReader(reader);
+            });
+        }
+
+        // call DbDataReader.read before this.
+        private Bracket BracketHighLevelInfoFromReader(DbDataReader reader)
+        {
+            Bracket bracket = Bracket.MakeEmpty();
+            bracket.ID= GetString(reader, "bracketID");
+            bracket.ChampTotalPoints = GetInt(reader, "champTotalPoints");
+            bracket.Completed = GetBool(reader, "completed");
+            bracket.CreationTime = GetDatetime(reader, "creationTime");
+            return bracket;
+        }
+
+        private Game GameFromReader(DbDataReader reader, ref Dictionary<string, Game> gameDict)
+        {
+            //id, division, round, leftgame, rightgame, competitor1, competitor2, winner
+            string gameID = GetString(reader, "gameID");
+            string leftGameID = GetString(reader, "_fk_leftGame");
+            string rightGameID = GetString(reader, "_fk_rightGame");
+            string gameDivision = GetString(reader, "gameDivision");
+            TournamentCompetitor? competitor_1 = GameCompetitorFromReader(reader);
+            int round = GetInt(reader, "_fk_tournamentRound");
+            
+            Func<TournamentCompetitor?> getTournamentCompetitor2 = () =>
+            {
+                if (competitor_1 == null) return null;
+                reader.Read(); // i can do this because this is the only part of this query that reads multiple lines.
+                return GameCompetitorFromReader(reader);
+            };
+            string winner_id = GetString(reader, "_fk_competitor_Winner");
+            Game? left_game = string.IsNullOrEmpty(leftGameID) ? null : gameDict[leftGameID];
+            Game? right_game = string.IsNullOrEmpty(rightGameID) ? null : gameDict[rightGameID];
+            TournamentCompetitor? competitor_2 = getTournamentCompetitor2();
+            Game game = new Game()
+            {
+                ID = gameID,
+                Competitor1 = competitor_1,
+                Competitor2 = competitor_2,
+                LeftGame = left_game,
+                RightGame = right_game,
+                Division = gameDivision,
+                Round = round,
+                Winner = GetWinner(winner_id, competitor_1, competitor_2)
+            };
+            gameDict.Add(gameID, game);
+            return game;
+        }
+
+        private static TournamentCompetitor? GetWinner(string winner_id, TournamentCompetitor? comp1,TournamentCompetitor? comp2)
+        {
+            if (string.IsNullOrEmpty(winner_id)) return null;
+            if(comp1 == null || comp2 == null)
+            {
+                throw new ArgumentException("competitors null when winner is not");
+            }
+            return comp1.ID == winner_id ? comp1 : comp2;
+        }
+
+        private TournamentCompetitor? GameCompetitorFromReader(DbDataReader reader)
+        {
+            string competitorID = GetString(reader, "competitorID");
+            if (string.IsNullOrEmpty(competitorID)) return null;
+
+            int seed = GetInt(reader, "_fk_seed");
+            string competitorName = GetString(reader, "competitorName");
+            string division = GetString(reader, "competitorDivision");
+            return new TournamentCompetitor()
+            {
+                Seed=seed,
+                Division=division,
+                ID=competitorID,
+                Name=competitorName
+            };
+        }
+
+        private Pick? PickFromReader(DbDataReader reader)
+        {
+            string competitorID = GetString(reader, "winnerPick");
+            if (string.IsNullOrEmpty(competitorID))
+            {
+                return null;
+            }
+            string tournamentID = GetString(reader, "tournamentID");
+            string bracketID = GetString(reader, "bracketID");
+            string gameID = GetString(reader, "gamePick");
+            return new Pick(bracketID, tournamentID, gameID, competitorID);
+        }
+
+        private Bracket SingleBracketFromReader(DbDataReader reader)
+        {
+            List<Pick> picks = new List<Pick>();
+            
+            Bracket bracket = Bracket.MakeEmpty();
+            Dictionary<string, Game> gameDict = new Dictionary<string, Game>();
+            while(reader.Read())
+            {
+                if (bracket.IsEmpty()) 
+                {
+                    bracket = BracketHighLevelInfoFromReader(reader);
+                    bracket.Tournament = TournamentTopLevelInfoFromReader(reader);
+                }
+                bracket.Tournament.SetChampionshipGame(GameFromReader(reader, ref gameDict));
+                Pick? p = PickFromReader(reader);
+                if(p != null)
+                {
+                    picks.Add(p);
+                }
+            }
+            bracket.Tournament.ApplyPicks(picks);
+            return bracket;
+        }
+
+        public GenericID GetLatestBracketIDForTournamentForUser(UserID user_id, string tournamentID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.GetLatestBracketForTournamentForUser, conn);
+                cmd.AddParameter("@userID", user_id.ID);
+                cmd.AddParameter("@tournamentID", tournamentID);
+                string bracket_id = ScalarStringFromReader(cmd);
+                return string.IsNullOrEmpty(bracket_id) ? GenericID.MakeEmpty() : new GenericID(bracket_id);
+            });
+        }
+
+        public Bracket GetLatestBracketForUser(UserID userID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.LatestBracketForUser(), conn);
+                cmd.AddParameter("@userID", userID.ID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return SingleBracketFromReader(reader);
             });
         }
     }

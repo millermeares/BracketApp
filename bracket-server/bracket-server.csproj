@@ -31,9 +31,6 @@
     <Compile Update="Program.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Routing\BracketEndpoints.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
     <Compile Update="Routing\EndpointManager.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>

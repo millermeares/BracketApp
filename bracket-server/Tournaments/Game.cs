@@ -8,8 +8,37 @@
         public Game? LeftGame { get; set; } = null;
         public Game? RightGame { get; set; } = null;
 
-        public TournamentCompetitor? Competitor1 { get; set; } = null;
-        public TournamentCompetitor? Competitor2 { get; set; } = null;
+        private TournamentCompetitor? _competitor1 = null; 
+
+        public TournamentCompetitor? Competitor1
+        {
+            get => _competitor1;
+            set
+            {
+                _competitor1 = value;
+                SwapCompetitorsToMakeBetterSeedNumber1();
+            }
+        }
+        private TournamentCompetitor? _competitor2 = null;
+        public TournamentCompetitor? Competitor2
+        {
+            get => _competitor2;
+            set
+            {
+                _competitor2 = value;
+                SwapCompetitorsToMakeBetterSeedNumber1();
+            }
+        }
+
+        private void SwapCompetitorsToMakeBetterSeedNumber1()
+        {
+            if (_competitor1 == null || _competitor2 == null) return;
+            if (_competitor2.Seed > _competitor1.Seed) return;
+            // swap.
+            var temp = _competitor2;
+            _competitor2 = _competitor1;
+            _competitor1 = temp;
+        }
         public TournamentCompetitor? Winner { get; set; } = null;
         
         
@@ -77,6 +106,50 @@
             }
             games.Add(this);
             return games;
+        }
+
+        internal Game? GetImmediateChildGame(string gameID)
+        {
+            if(LeftGame != null && LeftGame.ID == gameID)
+            {
+                return LeftGame;
+            } 
+            if(RightGame != null && RightGame.ID == gameID)
+            {
+                return RightGame;
+            }
+            return null;
+        } 
+
+        internal Game? FindParentGame(string gameID)
+        {
+            Game? possible_child = GetImmediateChildGame(gameID);
+            if(possible_child != null)
+            {
+                return this;
+            }
+            if(LeftGame != null)
+            {
+                possible_child = LeftGame.FindParentGame(gameID);
+                if(possible_child != null)
+                {
+                    return possible_child;
+                }
+            }
+            if(RightGame != null)
+            {
+                possible_child = RightGame.FindParentGame(gameID);
+                if(possible_child != null)
+                {
+                    return possible_child;
+                }
+            }
+            return null;
+        }
+
+        public bool IsLeft(string gameID)
+        {
+            return LeftGame != null && LeftGame.ID == gameID;
         }
 
 

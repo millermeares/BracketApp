@@ -9,6 +9,8 @@ namespace MillerAPI.DataAccess
 {
     public abstract class BaseDAL
     {
+        protected static DateTime MaxDate = new DateTime(9999, 12, 31, 23, 59, 59);
+
         public abstract string GetExceptionCategory();
         protected readonly IDataAccess _dataAccess;
         public BaseDAL(IDataAccess dataAccess)
@@ -25,8 +27,6 @@ namespace MillerAPI.DataAccess
         {
             _dataAccess.RecordError(ex, GetExceptionCategory());
         }
-
-        
 
         public byte[] GetByteArray(DbDataReader dbr, string key)
         {
@@ -46,45 +46,59 @@ namespace MillerAPI.DataAccess
 
         public DbCommand GetCommand(string cmd_str, DbConnection conn)
         {
-            return new MySqlCommand(cmd_str, (MySqlConnection)conn);
+            MySqlCommand cmd = new MySqlCommand(cmd_str, (MySqlConnection)conn);
+            cmd.AddParameter("@maxDate", MaxDate);
+            return cmd;
         }
 
         public DbCommand GetCommand(string cmd_string, DbConnection conn, DbTransaction trans)
         {
-            return new MySqlCommand(cmd_string, (MySqlConnection)conn, (MySqlTransaction)trans);
+            MySqlCommand cmd = new MySqlCommand(cmd_string, (MySqlConnection)conn, (MySqlTransaction)trans);
+            cmd.AddParameter("@maxDate", MaxDate);
+            return cmd;
         }
 
 
         public string GetString(DbDataReader dbr, string key, string alternative = "")
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
-            if(reader.IsDBNull(GetColumnNumber(reader, key)))
+            if(IsDBNull(reader, key))
             {
                 return alternative;
             }
             return reader.GetString(key);
         }
-        public int GetInt(DbDataReader dbr, string key)
+        private static bool IsDBNull(MySqlDataReader reader, string key)
+        {
+            return reader.IsDBNull(GetColumnNumber(reader, key));
+        }
+        public int GetInt(DbDataReader dbr, string key, int alternative = -1)
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
+            if(IsDBNull(reader, key))
+            {
+                return alternative;
+            }
             return reader.GetInt32(key);
         }
         public double GetDouble(DbDataReader dbr, string key, double alternative = 0.0)
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
-            if (reader.IsDBNull(GetColumnNumber(reader, key))) return alternative;
+            if (IsDBNull(reader, key)) return alternative;
             return reader.GetDouble(key);
         }
 
         public DateTime GetDatetime(DbDataReader dbr, string key)
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
+            if(IsDBNull(reader, key)) return DateTime.MinValue;
             return reader.GetDateTime(key);
         }
 
         public bool GetBool(DbDataReader dbr, string key)
         {
             MySqlDataReader reader = (MySqlDataReader)dbr;
+            if(IsDBNull(reader, key)) return false;
             return reader.GetBoolean(key);
         }
 
@@ -96,6 +110,13 @@ namespace MillerAPI.DataAccess
                 list.Add(func(reader));
             }
             return list;
+        }
+
+        protected string ScalarStringFromReader(DbCommand cmd)
+        {
+            object? val = cmd.ExecuteScalar();
+            if (val == null) return string.Empty;
+            return (string)val;
         }
     }
 }

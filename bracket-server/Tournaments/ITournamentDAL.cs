@@ -1,4 +1,6 @@
-﻿namespace bracket_server.Tournaments
+﻿using bracket_server.Brackets;
+
+namespace bracket_server.Tournaments
 {
     public interface ITournamentDAL
     {
@@ -14,5 +16,18 @@
 
         public bool FinalizeTournament(Tournament tournament);
         public Tournament GetTournamentTopLevelByID(string tournamentID);
+
+        public string GetActiveBracketingTournamentID();
+
+        public GenericID GetLatestBracketIDForTournamentForUser(UserID user_id, string tournamentID);
+
+        public Bracket GetBracket(string bracketID);
+
+        public Bracket GetLatestBracketForUser(UserID userID);
+
+        public bool InsertBracket(NewBracket bracket);
+        
+
+
     }
 }

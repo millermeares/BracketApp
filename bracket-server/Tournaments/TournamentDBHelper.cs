@@ -1,4 +1,5 @@
-﻿using MillerAPI.DataAccess;
+﻿using bracket_server.Brackets;
+using MillerAPI.DataAccess;
 using System.Data.Common;
 
 namespace bracket_server.Tournaments
@@ -33,6 +34,31 @@ namespace bracket_server.Tournaments
             cmd.AddParameter("@seedID", data.SeedID);
             cmd.AddParameter("@finalFourOdds", data.FinalFourOdds);
             cmd.AddParameter("@eliteEightOdds", data.EliteEightOdds);
+        }
+
+        public static void BracketParameters(this Bracket bracket, DbCommand cmd)
+        {
+            cmd.AddParameter("@bracketID", bracket);
+            cmd.AddParameter("@owner", bracket.Owner.ID);
+            cmd.AddParameter("@tournamentID", bracket.Tournament.ID);
+            cmd.AddParameter("@bracketCompleted", bracket.Completed);
+            cmd.AddParameter("@champTotalPoints", bracket.ChampTotalPoints);
+        }
+        public static void NewBracketParameters(this NewBracket bracket, DbCommand cmd)
+        {
+            cmd.AddParameter("@bracketID", bracket.ID);
+            cmd.AddParameter("@owner", bracket.Owner.ID);
+            cmd.AddParameter("@tournamentID", bracket.TournamentID);
+            cmd.AddParameter("@bracketCompleted", false);
+            cmd.AddParameter("@champTotalPoints", 120);
+        }
+
+        public static void PickParameters(this Pick pick, DbCommand cmd)
+        {
+            cmd.AddParameter("@gameID", pick.GameID);
+            cmd.AddParameter("@tournamentID", pick.TournamentID);
+            cmd.AddParameter("@bracketID", pick.BracketID);
+            cmd.AddParameter("@competitorID", pick.CompetitorID);
         }
     }
 }

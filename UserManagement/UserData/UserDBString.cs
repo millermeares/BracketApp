@@ -24,7 +24,7 @@ namespace UserManagement.UserDataAccess
             @"
         INSERT user(userID, passwordSalt, passwordHash, username, email)
         SELECT @user, @passwordSalt, @passwordHash, @username, @email
-        FROM dual WHERE (SELECT COUNT(email) FROM user WHERE email=@email OR username=@username IS NULL);";
+        FROM dual WHERE 0=(SELECT COUNT(email) FROM user WHERE email=@email OR username=@username IS NULL);";
 
         private static string _getAuthTokenForUserBase =
             @"

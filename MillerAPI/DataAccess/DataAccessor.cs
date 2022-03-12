@@ -54,7 +54,7 @@ namespace MillerAPI.DataAccess
             }
         }
 
-        public void RecordError(Exception e, string category = "database", string connectionID = "default")
+        public void RecordError(Exception e, string category = "database", string connectionID = "default", bool record_if_fail = true)
         {
             try
             {
@@ -66,10 +66,13 @@ namespace MillerAPI.DataAccess
             }
             catch (Exception ex)
             {
-                //todo: do something with this exception.
+                if(record_if_fail)
+                {
+                    RecordError(ex, category, connectionID, false);
+                }
             }
         }
-        public void RecordError(MySqlException e, string category = "database", string connectionID = "default")
+        public void RecordError(MySqlException e, string category = "database", string connectionID = "default", bool record_if_fail = true)
         {
             try
             {
@@ -79,11 +82,14 @@ namespace MillerAPI.DataAccess
                 e.ExceptionParameters(cmd, category);
                 cmd.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch (MySqlException ex)
             {
-                //todo: do something with this exception.
+                if (record_if_fail)
+                {
+                    RecordError(ex, category, connectionID, false);
+                }
             }
-            
+
         }
 
 

@@ -1,4 +1,6 @@
-﻿namespace bracket_server.Tournaments
+﻿using bracket_server.Brackets;
+
+namespace bracket_server.Tournaments
 {
     public class Tournament
     {
@@ -7,8 +9,10 @@
         public string Name { get; set; } = string.Empty;
         public DateTime EventStart { get; set; } = DateTime.MinValue;
         public DateTime EventEnd { get; set; } = DateTime.MaxValue;
-        public Game ChampionshipGame { get; set; } = new Game();
+        public Game ChampionshipGame { get; protected set; } = new Game();
 
+        private Dictionary<string, Game> _gameDictionary = new Dictionary<string, Game>();
+        private Dictionary<string, TournamentCompetitor> _competitorDictionary = new Dictionary<string,TournamentCompetitor>();
         public static Tournament New(string name)
         {
             return new Tournament()
@@ -16,6 +20,26 @@
                 ID = Guid.NewGuid().ToString(),
                 Name = name
             };
+        }
+
+        public void SetChampionshipGame(Game game)
+        {
+            ChampionshipGame = game;
+            _gameDictionary.Add(game.ID, game);
+            AddCompetitorsToDictIfThere(game);
+
+        }
+
+        private void AddCompetitorsToDictIfThere(Game game)
+        {
+            if(game.Competitor1 != null && !_competitorDictionary.ContainsKey(game.Competitor1.ID))
+            {
+                _competitorDictionary.Add(game.Competitor1.ID, game.Competitor1);
+            }
+            if(game.Competitor2 != null && !_competitorDictionary.ContainsKey(game.Competitor2.ID))
+            {
+                _competitorDictionary.Add(game.Competitor2.ID, game.Competitor2);
+            }
         }
 
         public static Tournament MakeEmpty()
@@ -26,6 +50,42 @@
         public bool IsEmpty()
         {
             return string.IsNullOrEmpty(ID);
+        }
+
+
+        private void ApplyPick(Pick p)
+        {
+            if(p.GameID == ChampionshipGame.ID)
+            {
+                ChampionshipGame.Winner = _competitorDictionary[p.CompetitorID];
+                return;
+            }
+            Game? parent_game = ChampionshipGame.FindParentGame(p.GameID);
+            if(parent_game == null) throw new Exception($"could not find parent game for {p.GameID}.");
+            Game? game = parent_game.GetImmediateChildGame(p.GameID);
+            if (game == null) throw new Exception("could not find game in immediate children but it should really be there.");
+            SetGameWinner(game, p);
+            if(parent_game.IsLeft(p.GameID))
+            {
+                parent_game.Competitor1 = _competitorDictionary[p.CompetitorID];
+            } else
+            {
+                // right
+                parent_game.Competitor2 = _competitorDictionary[p.CompetitorID];
+            }
+        }
+
+        private void SetGameWinner(Game game, Pick p)
+        {
+            game.Winner = _competitorDictionary[p.CompetitorID];
+        }
+
+        public void ApplyPicks(List<Pick> picks)
+        {
+            foreach(Pick p in picks)
+            {
+                ApplyPick(p);
+            }
         }
 
         internal static Game ChampionshipSkeletonFromBase(List<Game> base_games)

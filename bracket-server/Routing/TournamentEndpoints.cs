@@ -1,4 +1,5 @@
-﻿using bracket_server.Routing.APIArgumentHelpers;
+﻿using bracket_server.Brackets;
+using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
 namespace bracket_server.Routing
 {
@@ -35,10 +36,35 @@ namespace bracket_server.Routing
             try
             {
                 return GoodResult(tournament_dal.GetSeedDataForTournamentType(tournamentType));
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return ResultFromException(tournament_dal.GetDataAccess(), ex);
             }
+        }
+
+        public static IResult NewOrLatestBracket(AuthToken token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID id = user_dal.UserIDFromToken(token);
+                if (id.IsEmpty())
+                {
+                    return Results.Unauthorized();
+                }
+                string tournament_id = tournament_dal.GetActiveBracketingTournamentID();
+                Bracket bracket = Bracket.GetForNewOrLatestBracketForUser(id, tournament_id, tournament_dal);
+                if (bracket.IsEmpty())
+                {
+                    return ErrorResult("an error occurred while creating the bracket");
+                }
+                return GoodResult(bracket);
+            }
+            catch (Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+
         }
 
         public override void AddRoutes()
@@ -47,6 +73,7 @@ namespace bracket_server.Routing
             AddGet("/faketournamentskeleton", FakeTournamentSkeleton);
             AddPost("/getcompetitors", GetCompetitors);
             AddGet("/getseeddata", GetSeedData);
+            AddPost("/neworlatestbracket", NewOrLatestBracket);
         }
 
         

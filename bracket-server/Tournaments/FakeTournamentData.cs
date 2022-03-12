@@ -86,14 +86,15 @@
 
         private static Tournament MakeFakeTournament(string name, Game game)
         {
-            return new Tournament()
+            Tournament t = new Tournament()
             {
                 ID = Guid.NewGuid().ToString(),
-                ChampionshipGame = game,
                 Name = name,
                 EventEnd = DateTime.Now,
                 EventStart = DateTime.Now
             };
+            t.SetChampionshipGame(game);
+            return t;
         }
 
         private static int CustomSort(Game game1, Game game2)

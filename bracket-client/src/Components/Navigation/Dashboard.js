@@ -38,6 +38,9 @@ function Dashboard() {
                         <Link to="/home">Home</Link>
                     </Nav>
                     <Nav className="me-auto">
+                        <Link to="/filloutbracket">Fill Out Bracket</Link>
+                    </Nav>
+                    <Nav className="me-auto">
                         <Link to="/home/faketournament">Fake Tournament</Link>
                     </Nav>
                     {role_dependent_components}

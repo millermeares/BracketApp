@@ -11,6 +11,7 @@ import { RequireAuth, AuthProvider } from './Components/Entry/Auth';
 import FakeTournament from './Components/Brackets/FakeTournament';
 import Admin from './Components/Admin/Admin'
 import Developer from './Components/Developer/Developer'
+import FillOutBracket from './Components/Brackets/FillOutBracket';
 function App() {
 
 let home_element = <Home />
@@ -26,6 +27,7 @@ let home_element = <Home />
               <Route path="home" element={home_element}>
                 <Route path="faketournament" element={<FakeTournament />} />
               </Route>
+              <Route path="filloutbracket" element={<FillOutBracket />}/>
               <Route path="admin/*" element={<Admin />} />
               <Route path="developer" element={<Developer />} />
             </Route>

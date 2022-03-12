@@ -80,7 +80,6 @@ namespace bracket_server.Routing
             return new List<EndpointManager>()
             {
                 new UserEndpoints(),
-                new BracketEndpoints(),
                 new TournamentEndpoints(),
                 new AdminEndpoints(), 
                 new DeveloperEndpoints()
