@@ -64,49 +64,55 @@ function getTeamInGameMatchingId(game, id) {
 function handleRemoveNonWinners(champGame, gameId) {
     let parentGame = getParentGame(champGame, gameId);
     if (!parentGame) return;
-    if (parentGame.competitor1 != parentGame.leftGame.competitor1 && parentGame.competitor1 != parentGame.leftGame.competitor2) {
+    if (!compareCompetitors(parentGame.competitor1,parentGame.leftGame.competitor1) && !compareCompetitors(parentGame.competitor1, parentGame.leftGame.competitor2)) {
         parentGame.competitor1 = null;
     }
-    if (parentGame.competitor2 != parentGame.rightGame.competitor1 && parentGame.competitor2 != parentGame.rightGame.competitor2) {
+    if (!compareCompetitors(parentGame.competitor2,parentGame.rightGame.competitor1) && !compareCompetitors(parentGame.competitor2, parentGame.rightGame.competitor2)) {
         parentGame.competitor2 = null;
     }
     handleRemoveNonWinners(champGame, parentGame.id);
+}
 
+function compareCompetitors(comp1, comp2) {
+    if(comp1 == comp2) return true; //same reference, ez
+    if(!comp1 || !comp2) return false; // they are both non-null.
+    return comp1.id == comp2.id;
 }
 
 
 function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeSetWinnerPromise }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
+    console.log(champGame);
     let sending_request = false;
     let handleSetWinner = (gameId, winnerId) => {
         if(sending_request) return; // don't want to request more than once.
         sending_request = true;
         beforeSetWinnerPromise(gameId, winnerId).then(success => {
             sending_request = false;
-            console.log(success);
             if(!success) return; // if not success, i don't want it to affect anything.
             let parentGame = getParentGame(champGame, gameId);
             let winner_is_top = parentGame.leftGame.id == gameId;
             if (winner_is_top) {
                 let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.leftGame, winnerId);
-                if (team_to_set_as_competitor == parentGame.competitor1) {
+                if (compareCompetitors(team_to_set_as_competitor, parentGame.competitor1)) {
                     return;
                 }
-                if (parentGame.competitor1 == champGame.winner) {
+                if (compareCompetitors(parentGame.competitor1,champGame.winner)) {
                     champGame.winner = null; // handle clearing winner too.
                 }
                 parentGame.competitor1 = team_to_set_as_competitor;
             } else {
                 let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.rightGame, winnerId);
-                if (team_to_set_as_competitor == parentGame.competitor2) {
+                if (compareCompetitors(team_to_set_as_competitor,parentGame.competitor2)) {
                     return;
                 }
-                if (parentGame.competitor2 == champGame.winner) {
+                console.log("didn't return");
+                if (compareCompetitors(parentGame.competitor2, champGame.winner)) {
                     champGame.winner = null; // handle clearing winner too.
                 }
                 parentGame.competitor2 = team_to_set_as_competitor;
             }
-            handleRemoveNonWinners(champGame, gameId);
+            handleRemoveNonWinners(champGame, parentGame.gameId);
             setChampionshipGame({ ...champGame });
         }).catch(err => {
             console.log(err);
@@ -153,6 +159,7 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
     }
 
     function firstHalf(games) {
+        
         return games.slice(0, games.length / 2);
     }
 

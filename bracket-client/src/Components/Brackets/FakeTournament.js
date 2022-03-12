@@ -5,7 +5,7 @@ function FakeTournament() {
     let [bracket, setBracket] = useState(null);
     useEffect(() => {
         if (!bracket) {
-            api.get("/faketournamentskeleton").then(response => {
+            api.get("/faketournament").then(response => {
                 if(!response.data.valid) {
                     alert(response.data.payload);
                     return;

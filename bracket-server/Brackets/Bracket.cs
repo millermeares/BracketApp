@@ -8,7 +8,7 @@ namespace bracket_server.Brackets
         public Tournament Tournament { get; set; }
         public string ID { get; set; }
         public string Name { get; set; }
-        public UserID Owner { get; set; }
+        internal UserID Owner { get; set; }
         public bool Completed { get; set; } = false;
         public int ChampTotalPoints { get; set; } = 120;
         public DateTime CreationTime { get; set; }
