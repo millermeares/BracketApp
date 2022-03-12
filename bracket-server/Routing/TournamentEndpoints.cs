@@ -53,6 +53,10 @@ namespace bracket_server.Routing
                     return Results.Unauthorized();
                 }
                 string tournament_id = tournament_dal.GetActiveBracketingTournamentID();
+                if(string.IsNullOrEmpty(tournament_id))
+                {
+                    return ErrorResult("tell miller to assign an active tournament");
+                }
                 Bracket bracket = Bracket.GetForNewOrLatestBracketForUser(id, tournament_id, tournament_dal);
                 if (bracket.IsEmpty())
                 {
