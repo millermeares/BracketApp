@@ -1,5 +1,4 @@
-drop table bracket_game_prediction;
-drop table user_bracket;
+
 CREATE TABLE user_bracket(
 	_fk_user VARCHAR(45) NOT NULL,
     _fk_tournament VARCHAR(45) NOT NULL,

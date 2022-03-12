@@ -50,3 +50,6 @@ SELECT tournamentID, name, creator, _fk_type, tournamentFinalized,
 WHERE b.bracketID=@bracketID
 ORDER BY g._fk_tournamentRound, gameDivision, g.gameID
 
+
+
+select * from gameID where 
