@@ -82,7 +82,6 @@ function compareCompetitors(comp1, comp2) {
 
 function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeSetWinnerPromise }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
-    console.log(champGame);
     let sending_request = false;
     let handleSetWinner = (gameId, winnerId) => {
         if(sending_request) return; // don't want to request more than once.
@@ -119,10 +118,21 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
             sending_request = true;
         })
     }
-
+    let sending_champ_request = false;
     let handleSetChampWinner = (winnerId) => {
-        champGame.winner = getTeamInGameMatchingId(champGame, winnerId);
+        if(sending_champ_request) return;
+        sending_champ_request = true;
+        beforeSetWinnerPromise(champGame.id, winnerId).then(success => {
+            sending_champ_request = false;
+            if(!success){
+                return;
+            }
+            champGame.winner = getTeamInGameMatchingId(champGame, winnerId);
         setChampionshipGame({...champGame});
+        }).catch(err => {
+            sending_champ_request = false;
+            console.log(err);
+        });
     }
 
 

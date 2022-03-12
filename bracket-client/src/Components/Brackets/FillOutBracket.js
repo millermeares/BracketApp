@@ -16,7 +16,6 @@ function FillOutBracket() {
                     alert(response.data.payload);
                     return;
                 }
-                console.log(response.data.payload);
                 setFillingOutBracket(response.data.payload);
             }).catch(error => {
                 console.log(error);
