@@ -101,7 +101,7 @@ function AddNewCompetitor({ tournamentID, validateVsExistingCompetitors, onSucce
     }
 
     let getDivisions = () => {
-        return ["South", "East", "West", "Midwest"]
+        return ["A", "B", "C", "D"]
     }
 
     let getSeeds = () => {
