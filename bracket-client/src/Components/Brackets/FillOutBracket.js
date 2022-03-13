@@ -82,7 +82,7 @@ function FillOutBracket() {
     let bracket_props = {...fillingOutBracket, key:fillingOutBracket.key, allowEditingFunc:allowEditingFunc}
     return (
         <div>
-            <div>
+            <div className="d-flex justify-content-evenly">
                 <Button onClick={submitBracket}>Submit Bracket</Button>
                 <Button onClick={autoFillBracket}>SmartFill Bracket (still dumb for now)</Button>
             </div>
