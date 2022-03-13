@@ -392,10 +392,6 @@ namespace bracket_server.Tournaments
                 }
             }
             bracket.Tournament.ApplyPicks(picks);
-            if(bracket.IsEmpty())
-            {
-                throw new Exception("bracket should not be empty here.");
-            }
             return bracket;
         }
 

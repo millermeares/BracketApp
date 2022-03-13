@@ -147,6 +147,22 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult CompletedBracket(string bracketID, ITournamentDAL dal)
+        {
+            try
+            {
+                Bracket b = dal.GetBracket(bracketID);
+                if(b.IsEmpty())
+                {
+                    return ErrorResult("could not find bracket");
+                }
+                return GoodResult(b);
+            }catch(Exception ex)
+            {
+                return ResultFromException(dal.GetDataAccess(), ex);
+            }
+        }
+
         public override void AddRoutes()
         {
             AddGet("/faketournament", FakeTournament);
@@ -158,6 +174,7 @@ namespace bracket_server.Routing
             AddPost("/savepick", SavePick);
             AddPost("/smartfillbracket", SmartFillBracket);
             AddPost("/bracketsforuser", BracketSummariesForUser);
+            AddGet("/completedbracket/{bracketID}", CompletedBracket);
         }
 
         

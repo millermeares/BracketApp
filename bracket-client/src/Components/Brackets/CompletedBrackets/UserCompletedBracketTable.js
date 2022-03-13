@@ -4,9 +4,12 @@ import {useAuth} from '../../Entry/Auth';
 import api from '../../Services/api'
 import {v4 as uuid} from 'uuid';
 import BracketSummaryRow from './BracketSummaryRow'
+import {useNavigate} from 'react-router-dom';
 function UserCompletedBracketsTable() {
     const [brackets, setBrackets] = useState(null);
     let auth = useAuth();
+    let navigate = useNavigate();
+    
     useEffect(() => {
         if(!brackets) {
             api.post("/bracketsforuser", auth.token).then(response => {
@@ -25,7 +28,7 @@ function UserCompletedBracketsTable() {
         return <div>Loading brackets...</div>
     }
     let onViewBracketClick = (bracketID) => {
-        alert('coming soon');
+        navigate("../completedbracket/" + bracketID);
     }
 
     function makeBracketComponents() {

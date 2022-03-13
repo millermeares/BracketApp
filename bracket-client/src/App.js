@@ -13,6 +13,7 @@ import Admin from './Components/Admin/Admin'
 import Developer from './Components/Developer/Developer'
 import FillOutBracket from './Components/Brackets/FillOutBracket';
 import UserCompletedBracketsTable from './Components/Brackets/CompletedBrackets/UserCompletedBracketTable';
+import CompletedBracket from './Components/Brackets/CompletedBrackets/CompletedBracket';
 function App() {
 
   let default_element = <FillOutBracket />
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           <Route path="login" element={<GettingIn children={<Login />} />} />
           <Route path="signup" element={<GettingIn children={<SignUp />} />} />
+          <Route path="completedbracket/:id" element={<CompletedBracket />} />
           <Route element={<RequireAuth />}>
             <Route element={<Layout />} >
               <Route index element={default_element} />
