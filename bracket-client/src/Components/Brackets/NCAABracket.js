@@ -151,7 +151,10 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
         let inBetweenComponent = in_between_spacer ? <li className={in_between_style}>&nbsp;</li> : null;
         for(let i = 0; i < games.length; i++) {
             components.push(spacerComponent())
-            let props = {...games[i], className: game_side_class, inBetweenComponent: inBetweenComponent, renderSeed: renderSeed, key: games[i].id, handleSetWinner: handleSetWinner};
+            let props = {...games[i], className: game_side_class, inBetweenComponent: inBetweenComponent, renderSeed: renderSeed, 
+                key: games[i].id, 
+                handleSetWinner: handleSetWinner, 
+                isLeft: left};
             components.push(<Game {...props} />)
         }
         components.push(spacerComponent())
@@ -189,19 +192,19 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
             </ul>
 
             <ul className='round round-1'>
-                {makeRoundComponents(firstHalf(r_o_32_games), true, false, true)}
+                {makeRoundComponents(firstHalf(r_o_32_games), true, true, true)}
             </ul>
 
             <ul className='round round-2'>
-                {makeRoundComponents(firstHalf(sweet_16_games), true, false, true)}
+                {makeRoundComponents(firstHalf(sweet_16_games), true, true, true)}
             </ul>
 
             <ul className='round round-3'>
-                {makeRoundComponents(firstHalf(elite_eight_games), true, false, true, true)}
+                {makeRoundComponents(firstHalf(elite_eight_games), true, true, true, true)}
             </ul>
 
             <ul className='round round-4'>
-                {makeRoundComponents(firstHalf(semi_finals_games), true, false, true)}
+                {makeRoundComponents(firstHalf(semi_finals_games), true, true, true)}
             </ul>
 
             {makeFinalist1(champGame.competitor1)}
@@ -209,16 +212,16 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
             {makeFinalist2(champGame.competitor2)}
 
             <ul className='round round-4'>
-                {makeRoundComponents(secondHalf(semi_finals_games), false, false, true)}
+                {makeRoundComponents(secondHalf(semi_finals_games), false, true, true)}
             </ul>
             <ul className='round round-3'>
-                {makeRoundComponents(secondHalf(elite_eight_games), false, false, true, true)}
+                {makeRoundComponents(secondHalf(elite_eight_games), false, true, true, true)}
             </ul>
             <ul className='round round-2'>
-                {makeRoundComponents(secondHalf(sweet_16_games), false, false, true)}
+                {makeRoundComponents(secondHalf(sweet_16_games), false, true, true)}
             </ul>
             <ul className='round round-1'>
-                {makeRoundComponents(secondHalf(r_o_32_games), false, false, true)}
+                {makeRoundComponents(secondHalf(r_o_32_games), false, true, true)}
             </ul>
             <ul className='round seed'>
                 {makeRoundComponents(secondHalf(seed_games), false, true, false)}

@@ -46,8 +46,8 @@ function UserCompletedBracketsTable() {
         <Table>
             <thead>
                 <tr>
-                    <th>Tournament Name</th>
-                    <th>Winner Name</th>
+                    <th>Tournament</th>
+                    <th>Winner</th>
                     <th>Completion Date</th>
                     <th>View</th>
                 </tr>

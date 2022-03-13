@@ -9,7 +9,8 @@ namespace bracket_server.Tournaments
     {
         internal static string CreateTournament = 
             @"INSERT INTO tournament(tournamentID, name, creator)
-            VALUES(@tournamentID, @tournamentName, @creator);";
+            SELECT @tournamentID, @tournamentName, @creator
+            WHERE 0=(SELECT COUNT(*) FROM tournament WHERE name=@tournamentName);";
 
         internal static string InsertRound = 
             @"INSERT INTO tournament_round(_fk_tournament, round, name)
@@ -20,10 +21,10 @@ namespace bracket_server.Tournaments
             VALUES(@tournamentID, @divisionName);";
 
         internal static string AllTournaments = 
-            @"SELECT name, tournamentID, tournamentFinalized from tournament;";
+            @"SELECT name, tournamentID, tournamentFinalized, createdTime, _fk_type AS tournamentType from tournament;";
 
         internal static string GetTournamentTopLevelByID = 
-            @"SELECT name, tournamentID, tournamentFinalized FROM tournament WHERE tournamentID=@tournamentID;";
+            @"SELECT name, tournamentID, tournamentFinalized, createdTime, _fk_type AS tournamentType FROM tournament WHERE tournamentID=@tournamentID;";
 
         internal static string DeleteTournament = 
             @"
@@ -140,21 +141,9 @@ namespace bracket_server.Tournaments
         internal static string GetStringParam = 
             @"SELECT paramvalue FROM string_params WHERE paramKey=@key AND endDate=@maxDate;";
 
-        internal static string GetTournamentByID =
-            @"
-        SELECT tournamentID, name, creator, _fk_type, tournamentFinalized, 
-	        g._fk_division AS gameDivision, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame, 
-	        c._fk_seed, c.competitorName, c.competitorID, c._fk_division AS competitorDivision
-        FROM tournament t 
-        JOIN tournament_game g ON g._fk_tournament=t.tournamentID
-        LEFT OUTER JOIN game_participant p ON p._fk_game=g.gameID
-        LEFT OUTER JOIN competitor_tournament c ON c.competitorID=p._fk_competitor AND t.tournamentID=c._fk_tournament
-        WHERE t.tournamentID=@tournamentID;
-            ";
-
         private static string GetBracketBase =
             @"
-        SELECT tournamentID, name, creator, _fk_type, tournamentFinalized, b._fk_user AS userID, b.completionTime,
+        SELECT tournamentID, name, t.createdTime, creator, t._fk_type AS tournamentType, tournamentFinalized, b._fk_user AS userID, b.completionTime,
 	        g._fk_division AS gameDivision, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame, g._fk_competitor_Winner,
 	        c._fk_seed, c.competitorName, c.competitorID, c._fk_division AS competitorDivision, 
             bgp._fk_competitor AS winnerPick, bgp._fk_game AS gamePick, b.bracketID, b.completed, b.champTotalPoints, b.creationTime

@@ -1,4 +1,4 @@
-function Finalist({ name, id, className, nameClass, handleSetWinner }) {
+function Finalist({ name, id, seed, className, nameClass, handleSetWinner }) {
     return (
         <ul className={className}>
             <li className='spacer'>&nbsp;</li>

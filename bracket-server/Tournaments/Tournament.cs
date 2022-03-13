@@ -10,7 +10,8 @@ namespace bracket_server.Tournaments
         public DateTime EventStart { get; set; } = DateTime.MinValue;
         public DateTime EventEnd { get; set; } = DateTime.MaxValue;
         public Game ChampionshipGame { get; protected set; } = new Game();
-
+        public DateTime CreatedTime { get; set; } = DateTime.MinValue;
+        public string TournamentType { get; set; } = string.Empty;
         private Dictionary<string, Game> _gameDictionary = new Dictionary<string, Game>();
         private Dictionary<string, TournamentCompetitor> _competitorDictionary = new Dictionary<string,TournamentCompetitor>();
         public static Tournament New(string name)
@@ -278,10 +279,26 @@ namespace bracket_server.Tournaments
 
         protected bool SmartPickWinner(Game game, SmartFillArgs args)
         {
-            game.RandomWinner(); // and this is where things get interesting.
-            // save the winner as a pick.
-            // there is a realistic world where i do my saving at the end. 
+            game.Winner = SmartPickWinner(game.Competitor1, game.Competitor2, args);
             return args.SavePickChange(args.MakePickChange(game, ID));
+        }
+
+        protected TournamentCompetitor SmartPickWinner(TournamentCompetitor comp1, TournamentCompetitor comp2, SmartFillArgs args)
+        {
+            SeedData seed1 = args.SeedData.GetSeedData(comp1.Seed);
+            SeedData seed2 = args.SeedData.GetSeedData(comp2.Seed);
+
+            double total_final_four_odds = seed1.FinalFourOdds + seed2.FinalFourOdds;
+
+            double outcome_double = GetRandomDouble(total_final_four_odds);
+
+            bool one_win = outcome_double < seed1.FinalFourOdds;
+            return one_win ? comp1 : comp2;
+        }
+
+        protected double GetRandomDouble(double multiplier)
+        {
+            return Random.Shared.NextDouble() * multiplier;
         }
 
         

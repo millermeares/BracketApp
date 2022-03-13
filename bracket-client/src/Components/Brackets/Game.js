@@ -3,7 +3,7 @@ import Team from './Team';
 import '../../Styling/BracketCSS.css'
 
 
-function Game({competitor1, competitor2, id, leftGame, rightGame, className, inBetweenComponent, renderSeed, handleSetWinner}) {
+function Game({competitor1, competitor2, id, leftGame, rightGame, className, inBetweenComponent, renderSeed, handleSetWinner, isLeft}) {
     // for depth: 
     // 1 is final 4
     // 2 is elite 8
@@ -15,7 +15,7 @@ function Game({competitor1, competitor2, id, leftGame, rightGame, className, inB
         handleSetWinner(id, teamId);
     }
     let teamComponent = (team) => {
-        let props = {...team, renderSeed: renderSeed, handleTeamClicked: handleTeamClicked};
+        let props = {...team, renderSeed: renderSeed, handleTeamClicked: handleTeamClicked ,isLeft};
         return <Team {...props} />
     }
 

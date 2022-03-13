@@ -14,7 +14,7 @@ namespace bracket_server.Routing
                 Tournament tournament = tournament_dal.CreateTournament(user_id, cat.TournamentName);
                 if(tournament.IsEmpty())
                 {
-                    throw new Exception("failed to create tournament");
+                    return ErrorResult($"tournament name already used {cat.TournamentName}");
                 }
                 List<NewTournamentCompetitor> fake_competitors = GetFakeCompetitors();
                 foreach(NewTournamentCompetitor competitor in fake_competitors)
@@ -25,9 +25,7 @@ namespace bracket_server.Routing
                         throw new Exception("failed to create tournament competitor");
                     }
                 }
-                return Results.Ok();
-
-
+                return EmptyValidResult();
             }
             catch(Exception ex)
             {
@@ -63,17 +61,17 @@ namespace bracket_server.Routing
         {
             if(number <= 16)
             {
-                return "East";
+                return "A";
             }
             if(number <= 32)
             {
-                return "South";
+                return "B";
             }
             if(number <= 48)
             {
-                return "Midwest";
+                return "C";
             }
-            return "West";
+            return "D";
         }
 
         private static UserID ConfirmAuth(AuthToken token, IUserDAL dal)

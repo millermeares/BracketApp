@@ -94,7 +94,9 @@ namespace bracket_server.Tournaments
             {
                 ID = id,
                 Name = name,
-                Finalized = GetBool(reader, "tournamentFinalized")
+                Finalized = GetBool(reader, "tournamentFinalized"),
+                CreatedTime = GetDatetime(reader, "createdTime"),
+                TournamentType = GetString(reader, "tournamentType")
             };
         }
 

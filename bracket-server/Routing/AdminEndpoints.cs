@@ -19,7 +19,7 @@ namespace bracket_server.Routing
                 Tournament tournament = tournament_dal.CreateTournament(user_id, cat.TournamentName);
                 if(tournament.IsEmpty())
                 {
-                    return ErrorResult("could not create tournament for some reason");
+                    return ErrorResult($"tournament name already in use {cat.TournamentName}");
                 }
                 return GoodResult(tournament);
             }catch(Exception ex)

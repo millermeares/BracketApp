@@ -54,4 +54,40 @@ ORDER BY g._fk_tournamentRound, gameDivision, g.gameID;
 
 select * from tournament_game;
 
-select * 
+SELECT b.bracketID, b.creationTime, b.completionTime, t.name AS tournamentName,competitorName   FROM user_bracket b
+JOIN tournament t ON t.tournamentID=b._fk_tournament
+JOIN (
+	SELECT MAX(round) AS champRound, _fk_tournamentType FROM tournament_round GROUP BY _fk_tournamentType
+) maxRound ON maxRound._fk_tournamentType=t._fk_type
+JOIN tournament_game g ON t.tournamentID=g._fk_tournament AND g._fk_tournamentRound=maxRound.champRound
+JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND g.gameID=bgp._fk_game
+JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID AND c.competitorID=bgp._fk_competitor
+WHERE b.completed IS TRUE AND b._fk_user=@userID
+ORDER BY b.completionTime DESC;
+
+SELECT b.bracketID, b.creationTime, b.completionTime, t.name AS tournamentName,competitorName   FROM user_bracket b
+        JOIN tournament t ON t.tournamentID=b._fk_tournament
+        JOIN (
+	        SELECT MAX(round) AS champRound, _fk_tournamentType FROM tournament_round GROUP BY _fk_tournamentType
+        ) maxRound ON maxRound._fk_tournamentType=t._fk_type
+        JOIN tournament_game g ON t.tournamentID=g._fk_tournament AND g._fk_tournamentRound=maxRound.champRound
+        JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND g.gameID=bgp._fk_game
+        JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID AND c.competitorID=bgp._fk_competitor
+        WHERE b.completed IS TRUE AND b._fk_user=@userID
+        ORDER BY b.completionTime DESC;
+select * from user;
+set @userID="cf79a314-e3f6-4448-833a-29d6984c311d";
+SELECT MAX(_fk_tournamentRound) AS 'champRound', g._fk_tournament AS tournamentID 
+FROM tournament_game g
+JOIN user_bracket b ON b._fk_tournament=g._fk_tournament
+WHERE b._fk_user=@userID AND b.completed IS TRUE
+GROUP BY g._fk_tournament;
+
+
+select * from tournament;
+select * from tournament_game;
+select * from tournament_division;
+delete from competitor_tournament where _fk_tournament="0790a500-41fe-461b-a62e-9c389f1d796a";
+delete from tournament where tournamentid="0790a500-41fe-461b-a62e-9c389f1d796a";
+
+

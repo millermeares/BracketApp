@@ -57,9 +57,23 @@ namespace bracket_server.Brackets
             return Tournament.GetPickChanges(p);
         }
 
+        private SmartFillArgs GetSmartFillArgs(ITournamentDAL dal)
+        {
+            SmartFillArgs args = new SmartFillArgs(dal, ID);
+            args.SeedData = GetSeedDataCollection(dal);
+            return args;
+        }
+
         public void AutoFill(ITournamentDAL dal)
         {
-            Tournament.Autofill(new SmartFillArgs(dal, ID));
+            SmartFillArgs smartFillArgs = GetSmartFillArgs(dal);
+            Tournament.Autofill(smartFillArgs);
+        }
+
+        private SeedDataCollection GetSeedDataCollection(ITournamentDAL dal)
+        {
+            List<SeedData> seed_data = dal.GetSeedDataForTournamentType(Tournament.TournamentType);
+            return new SeedDataCollection(seed_data);
         }
     }
 }

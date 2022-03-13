@@ -1,10 +1,11 @@
 import '../../Styling/BracketCSS.css'
-function Team({name, id, seed, renderSeed, handleTeamClicked}) {
-
+function Team({name, id, seed, renderSeed, handleTeamClicked, isLeft}) {
+    let name_span = <span>{name}</span>
     return (
         <div className="team" onClick={() => handleTeamClicked(id)}>
-            <span>{renderSeed ? seed : null}</span>
-            <span>{name}</span>
+            {!isLeft ? name_span : null}
+            <span className="seedNumber">{renderSeed ? seed : null}</span>
+            {isLeft ? name_span : null}
         </div>
     )
 }
