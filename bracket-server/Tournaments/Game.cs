@@ -89,6 +89,15 @@ namespace bracket_server.Tournaments
             Winner = winner;
         }
 
+
+        internal bool HasCompetitor1()
+        {
+            return Competitor1 != null;
+        }
+        internal bool HasCompetitor2()
+        {
+            return Competitor2 != null;
+        }
         internal bool HasCompetitors()
         {
             return Competitor1 != null && Competitor2 != null;

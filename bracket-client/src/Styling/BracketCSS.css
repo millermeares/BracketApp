@@ -121,7 +121,7 @@ body {
   }
   
   li.game-right li.game-bottom {
-    text-align: right;
+    /* text-align: right; */
     border-left: 1px solid #aaa;
   }
   li.game-left li.game-bottom{

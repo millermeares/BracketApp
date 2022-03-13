@@ -14,7 +14,7 @@ import Developer from './Components/Developer/Developer'
 import FillOutBracket from './Components/Brackets/FillOutBracket';
 function App() {
 
-let home_element = <Home />
+  let default_element = <FillOutBracket />
   return (
     <div className="App">
       <AuthProvider>
@@ -23,11 +23,9 @@ let home_element = <Home />
           <Route path="signup" element={<GettingIn children={<SignUp />} />} />
           <Route element={<RequireAuth />}>
             <Route element={<Layout />} >
-              <Route index element={home_element} />
-              <Route path="home" element={home_element}>
-                <Route path="faketournament" element={<FakeTournament />} />
-              </Route>
+              <Route index element={default_element} />
               <Route path="filloutbracket" element={<FillOutBracket />}/>
+              <Route path="faketournament" element={<FakeTournament />} />
               <Route path="admin/*" element={<Admin />} />
               <Route path="developer" element={<Developer />} />
             </Route>

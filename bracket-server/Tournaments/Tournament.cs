@@ -248,6 +248,44 @@ namespace bracket_server.Tournaments
             return new List<PickChange>();
         }
 
+        // for now, completely random. 
+        public void Autofill(SmartFillArgs args) // this could bring in the info like SeedData dictionary, etc.
+        {
+            ChampionshipGame.Winner = SmartFillGamesToGetWinner(ChampionshipGame, args);
+        }
+
+        protected TournamentCompetitor? SmartFillGamesToGetWinner(Game game, SmartFillArgs args)
+        {
+            if (game.HasWinner()) return game.Winner;
+            if(!game.HasCompetitors())
+            {
+                if(!game.HasCompetitor1())
+                {
+                    game.Competitor1 = SmartFillGamesToGetWinner(game.LeftGame, args);
+                }
+                if(!game.HasCompetitor2())
+                {
+                    game.Competitor2 = SmartFillGamesToGetWinner(game.RightGame, args);
+                }
+            }
+            bool success = SmartPickWinner(game, args);
+            if(!success)
+            {
+                throw new ArgumentException("Error occurred while filling picking smart winner");
+            }
+            return game.Winner;
+        }
+
+        protected bool SmartPickWinner(Game game, SmartFillArgs args)
+        {
+            game.RandomWinner(); // and this is where things get interesting.
+            // save the winner as a pick.
+            // there is a realistic world where i do my saving at the end. 
+            return args.SavePickChange(args.MakePickChange(game, ID));
+        }
+
+        
+
         
 
     }

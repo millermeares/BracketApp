@@ -56,5 +56,10 @@ namespace bracket_server.Brackets
         {
             return Tournament.GetPickChanges(p);
         }
+
+        public void AutoFill(ITournamentDAL dal)
+        {
+            Tournament.Autofill(new SmartFillArgs(dal, ID));
+        }
     }
 }

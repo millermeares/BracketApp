@@ -114,6 +114,24 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult SmartFillBracket(IDAuthToken id_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = user_dal.UserIDFromToken(id_token.Token);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                Bracket bracket = tournament_dal.GetBracket(id_token.ID);
+                // ok here is where we need to do the 'simulate' type thing
+                bracket.AutoFill(tournament_dal);
+                // here's the thing - are we considering this to be a pick thing? like are those gonna be finalized fr? probably right? 
+                // yeah they are. hm.
+                return GoodResult(bracket);
+            }catch(Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
         public override void AddRoutes()
         {
             AddGet("/faketournament", FakeTournament);
@@ -123,6 +141,7 @@ namespace bracket_server.Routing
             AddPost("/neworlatestbracket", NewOrLatestBracket);
             AddPost("/finalizecontestentry", FinalizeContestEntry);
             AddPost("/savepick", SavePick);
+            AddPost("/smartfillbracket", SmartFillBracket);
         }
 
         

@@ -82,13 +82,9 @@ function compareCompetitors(comp1, comp2) {
 
 function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeSetWinnerPromise }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
-    let sending_request = false;
     let handleSetWinner = (gameId, winnerId) => {
-        if(sending_request) return; // don't want to request more than once.
-        sending_request = true;
-        beforeSetWinnerPromise(gameId, winnerId).then(success => {
-            sending_request = false;
-            if(!success) return; // if not success, i don't want it to affect anything.
+        beforeSetWinnerPromise(gameId, winnerId).then(updateUI => {
+            if(!updateUI) return; // if not success, i don't want it to affect anything.
             let parentGame = getParentGame(champGame, gameId);
             let winner_is_top = parentGame.leftGame.id == gameId;
             if (winner_is_top) {
@@ -105,7 +101,6 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
                 if (compareCompetitors(team_to_set_as_competitor,parentGame.competitor2)) {
                     return;
                 }
-                console.log("didn't return");
                 if (compareCompetitors(parentGame.competitor2, champGame.winner)) {
                     champGame.winner = null; // handle clearing winner too.
                 }
@@ -115,7 +110,6 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
             setChampionshipGame({ ...champGame });
         }).catch(err => {
             console.log(err);
-            sending_request = true;
         })
     }
     let sending_champ_request = false;

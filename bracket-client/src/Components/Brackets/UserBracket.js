@@ -1,10 +1,14 @@
 import NCAABracket from "./NCAABracket";
 import api from '../Services/api';
 import {useAuth} from '../Entry/Auth';
-function UserBracket({tournament, id, name, owner, completed, champTotalPoints, creationTime}) {
+function UserBracket({tournament, id, name, completed, champTotalPoints, creationTime, allowEditingFunc}) {
     let auth = useAuth();
-    //todo: functions like onPickMade or something
     let onMakePick = async (gameID, winnerID) => {
+        if(!allowEditingFunc()) {
+            return new Promise(resolve => {
+                resolve(false)
+            })
+        }
         let pick = {
             BracketID: id, 
             GameID: gameID,
@@ -16,6 +20,7 @@ function UserBracket({tournament, id, name, owner, completed, champTotalPoints, 
             Pick: pick
         }
         return api.post("/savepick", obj).then(response => {
+            
             if(!response.data.valid) {
                 alert(response.data.payload);
                 return false;
@@ -24,7 +29,7 @@ function UserBracket({tournament, id, name, owner, completed, champTotalPoints, 
         }).catch(error => {
             console.log(error);
             return false;
-        })
+        });
     }
     let bracket_props = {...tournament, beforeSetWinnerPromise:onMakePick }
     return (
