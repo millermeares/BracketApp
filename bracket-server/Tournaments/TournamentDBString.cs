@@ -154,7 +154,7 @@ namespace bracket_server.Tournaments
 
         private static string GetBracketBase =
             @"
-        SELECT tournamentID, name, creator, _fk_type, tournamentFinalized, 
+        SELECT tournamentID, name, creator, _fk_type, tournamentFinalized, b._fk_user AS userID,
 	        g._fk_division AS gameDivision, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame, g._fk_competitor_Winner,
 	        c._fk_seed, c.competitorName, c.competitorID, c._fk_division AS competitorDivision, 
             bgp._fk_competitor AS winnerPick, bgp._fk_game AS gamePick, b.bracketID, b.completed, b.champTotalPoints, b.creationTime

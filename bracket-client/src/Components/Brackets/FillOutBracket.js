@@ -41,18 +41,20 @@ function FillOutBracket() {
                 alert(response.data.payload);
                 return;
             }
+            console.log(response.data.payload);
+            setFillingOutBracket({...response.data.payload});
             alert('submit successful');
-            setFillingOutBracket(response.data.payload);
         }).catch(err => {
             console.log(err);
             submitting_bracket = false;
         });
     }
 
+    let bracket_props = {...fillingOutBracket, key:fillingOutBracket.id}
     return (
         <div>
             <Button onClick={submitBracket}>Submit Bracket</Button>
-            <UserBracket {...fillingOutBracket} />
+            <UserBracket {...bracket_props} />
         </div>
         
     )

@@ -292,6 +292,7 @@ namespace bracket_server.Tournaments
             bracket.ChampTotalPoints = GetInt(reader, "champTotalPoints");
             bracket.Completed = GetBool(reader, "completed");
             bracket.CreationTime = GetDatetime(reader, "creationTime");
+            bracket.Owner = new UserID(GetString(reader, "userID"));
             return bracket;
         }
 

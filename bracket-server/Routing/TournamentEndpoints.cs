@@ -81,7 +81,11 @@ namespace bracket_server.Routing
                 {
                     return ErrorResult("fill out entire bracket before saving");
                 }
-                tournament_dal.FinishBracket(bracket);
+                bool success = tournament_dal.FinishBracket(bracket);
+                if(!success)
+                {
+                    return ErrorResult("error saving");
+                }
                 return NewOrLatestBracket(id_token.Token, user_dal, tournament_dal); // i like this.
             }
             catch (Exception ex)
