@@ -271,5 +271,33 @@ namespace bracket_server.Tournaments
         JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID AND c.competitorID=bgp._fk_competitor
         WHERE b.completed IS TRUE AND b._fk_user=@userID
         ORDER BY b.completionTime DESC;";
+
+
+        private static string KenPomColumns = @"kpm.offensiveefficiency, kpm.defensiveefficiency, kpm.overallefficiency, kpm.tempo, IF(kpm.overallEfficiency IS NULL, FALSE, TRUE) AS 'hasKenPom'";
+        private static string CompetitorColumns = @"c.competitorName, c.competitorID, c._fk_division, c._fk_seed, c._fk_tournament";
+
+        internal static string KenPomDataForTournamentCompetitor()
+        {
+            return 
+            $@"SELECT {KenPomColumns}
+            FROM ken_pom_data kpm WHERE kpm._fk_tournament=@tournamentID AND kpm._fk_competitor=@competitorID;";
+        }
+
+        internal static string KenPomDataForTournament()
+        {
+            return $@"SELECT {KenPomColumns}, {CompetitorColumns}
+            FROM competitor_tournament c
+            LEFT OUTER JOIN ken_pom_data kpm ON c._fk_tournament=kpm._fk_tournament AND c.competitorID=kpm._fk_competitor
+            WHERE c._fk_tournament=@tournamentID;";
+        }
+
+
+        internal static string InsertKenPomDataCompetitor =
+            @"
+        DELETE FROM ken_pom_data 
+        WHERE _fk_tournament=@tournamentID AND _fk_competitor=@competitorID;
+        INSERT INTO ken_pom_data(_fk_competitor, _fk_tournament, offensiveefficiency, defensiveefficiency, overallefficiency, tempo)
+        VALUES(@competitorID, @tournamentID, @offensiveEfficiency, @defensiveEfficiency, @overallEfficiency, @tempo);
+        ";
     }
 }

@@ -1,4 +1,5 @@
 ﻿using bracket_server.Brackets;
+using bracket_server.Tournaments.KenPom;
 using MillerAPI.DataAccess;
 using System.Data.Common;
 using static UserManagement.UserDataAccess.DBHelpers;
@@ -464,6 +465,66 @@ namespace bracket_server.Tournaments
             string tournamentName = GetString(reader, "tournamentName");
             string competitorName = GetString(reader, "competitorName");
             return new BracketSummary(bracketID, tournamentName, completionTime, creationTime, competitorName);
+        }
+
+        public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.KenPomDataForTournament(), conn);
+                cmd.AddParameter("@tournamentID", tournamentID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return ListFromReader(reader, CompetitorKenPomDataFromReader);
+            }); 
+        }
+
+        public Dictionary<string, KenPomData> KenPomDataForTournament(string tournamentID)
+        {
+            List<CompetitorKenPomData> data = AllCompetitorKenPomDataForTournament(tournamentID);
+            return data.ToDictionary(d => d.Competitor.ID, d => d.Data);
+        }
+
+        public KenPomData KenPomDataForCompetitor(string tournamentID, string competitor)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.KenPomDataForTournamentCompetitor(), conn);
+                cmd.AddParameter("@competitorID", competitor);
+                cmd.AddParameter("@tournamentID", tournamentID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return KenPomDataFromReader(reader);
+            });
+        }
+
+        public bool SaveKenpomData(KenPomDataReference data)
+        {
+            return _dataAccess.DoTransaction((conn, trans) =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.InsertKenPomDataCompetitor, conn, trans);
+                data.KenPomParameter(cmd);
+                return cmd.ExecuteNonQuery() > 0;
+            });
+        }
+
+        private CompetitorKenPomData CompetitorKenPomDataFromReader(DbDataReader reader)
+        {
+            TournamentCompetitor competitor = TournamentCompetitorFromReader(reader);
+            KenPomData data = KenPomDataFromReader(reader);
+            return new CompetitorKenPomData(competitor, data);
+        }
+
+        private KenPomData KenPomDataFromReader(DbDataReader reader)
+        {
+            bool hasKenPom = GetBool(reader, "hasKenPom");
+            if(!hasKenPom)
+            {
+                return new KenPomData(0, 0, 0, 0);
+            }
+            double efficiency = GetDouble(reader, "overallEfficiency");
+            double offensive_efficiency = GetDouble(reader, "offensiveEfficiency");
+            double defensive_efficiency = GetDouble(reader, "defensiveEfficiency");
+            double tempo = GetDouble(reader, "tempo");
+            return new KenPomData(offensive_efficiency, defensive_efficiency, tempo, efficiency);
         }
     }
 }

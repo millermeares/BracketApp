@@ -88,6 +88,11 @@ select * from tournament;
 select * from tournament_game;
 select * from tournament_division;
 delete from competitor_tournament where _fk_tournament="0790a500-41fe-461b-a62e-9c389f1d796a";
-delete from tournament where tournamentid="0790a500-41fe-461b-a62e-9c389f1d796a";
 
 
+SELECT kpm.offensiveefficiency, kpm.defensiveefficiency, kpm.overallefficiency, kpm.tempo, IF(kpm.overallEfficiency IS NULL, FALSE, TRUE) AS 'hasKenPom', c.competitorName, c.competitorID, c._fk_division, c._fk_seed, c._fk_tournament
+            FROM competitor_tournament c
+            LEFT OUTER JOIN ken_pom_data kpm ON c._fk_tournament=kpm._fk_tournament AND c.competitorID=kpm._fk_competitor
+            WHERE c._fk_tournament=@tournamentID;
+            
+            

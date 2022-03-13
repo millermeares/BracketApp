@@ -9,6 +9,7 @@ import {Routes, Route, Link, Outlet} from 'react-router-dom'
 import ConfigTournament from './ConfigTournament';
 import SeedDataConfig from './SeedDataConfig';
 import {Nav, Container, Row, Col} from 'react-bootstrap';
+import KenPomConfig from './KenPomConfig';
 function Admin() {
     let auth = useAuth();
     let navigate = useNavigate();
@@ -33,6 +34,7 @@ function Admin() {
                         <Nav defaultActiveKey="tournamentconfig" className="flex-column">
                             <Link to="tournamentconfig">Tournament Config</Link>
                             <Link to="seeddataconfig">SeedData Config</Link>
+                            <Link to="kenpomconfig">KenPom Config</Link>
                         </Nav>
                     </Col>
                     <Col>
@@ -45,6 +47,7 @@ function Admin() {
                 <Route index element={<ConfigTournament />} />
                 <Route path="tournamentconfig" element={<ConfigTournament />} />
                 <Route path="seeddataconfig" element={<SeedDataConfig />} />
+                <Route path="kenpomconfig" element={<KenPomConfig />} />
             </Routes>
         </div>
         

@@ -1,5 +1,5 @@
 ﻿using bracket_server.Brackets;
-
+using bracket_server.Tournaments.KenPom;
 namespace bracket_server.Tournaments
 {
     public interface ITournamentDAL
@@ -32,6 +32,11 @@ namespace bracket_server.Tournaments
         public bool SavePickChanges(List<PickChange> pick_changes);
 
         public List<BracketSummary> BracketSummariesForUser(UserID userID);
+
+        public bool SaveKenpomData(KenPomDataReference data);
+        public KenPomData KenPomDataForCompetitor(string tournamentID, string competitor);
+        public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID);
+        public Dictionary<string, KenPomData> KenPomDataForTournament(string tournamentID);
 
 
     }

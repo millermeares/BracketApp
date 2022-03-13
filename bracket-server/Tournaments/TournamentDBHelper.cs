@@ -1,4 +1,5 @@
 ﻿using bracket_server.Brackets;
+using bracket_server.Tournaments.KenPom;
 using MillerAPI.DataAccess;
 using System.Data.Common;
 
@@ -59,6 +60,16 @@ namespace bracket_server.Tournaments
             cmd.AddParameter("@tournamentID", pick.TournamentID);
             cmd.AddParameter("@bracketID", pick.BracketID);
             cmd.AddParameter("@competitorID", pick.CompetitorID);
+        }
+
+        public static void KenPomParameter(this KenPomDataReference data, DbCommand cmd)
+        {
+            cmd.AddParameter("@competitorID", data.CompetitorID);
+            cmd.AddParameter("@tournamentID", data.TournamentID);
+            cmd.AddParameter("@offensiveEfficiency", data.OffensiveEfficiency);
+            cmd.AddParameter("@defensiveEfficiency", data.DefensiveEfficiency);
+            cmd.AddParameter("@tempo", data.Tempo);
+            cmd.AddParameter("@overallEfficiency", data.OverallEfficiency);
         }
     }
 }

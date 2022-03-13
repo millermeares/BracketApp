@@ -1,6 +1,8 @@
 ﻿using bracket_server.Brackets;
 using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
+using bracket_server.Tournaments.KenPom;
+
 namespace bracket_server.Routing
 {
     public class TournamentEndpoints : EndpointManager
@@ -163,6 +165,22 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult KenPomDataForActiveTournament(ITournamentDAL dal)
+        {
+            try
+            {
+                string active_tournament = dal.GetActiveBracketingTournamentID();
+                List<CompetitorKenPomData> data = dal.AllCompetitorKenPomDataForTournament(active_tournament);
+                data.Sort((x, y) => x.Competitor.Name.CompareTo(y.Competitor.Name));
+                return GoodResult(data);
+            }catch(Exception ex) 
+            {
+                return ResultFromException(dal.GetDataAccess(), ex);
+            }
+        }
+
+        
+
         public override void AddRoutes()
         {
             AddGet("/faketournament", FakeTournament);
@@ -175,6 +193,7 @@ namespace bracket_server.Routing
             AddPost("/smartfillbracket", SmartFillBracket);
             AddPost("/bracketsforuser", BracketSummariesForUser);
             AddGet("/completedbracket/{bracketID}", CompletedBracket);
+            AddGet("/kenpomdata", KenPomDataForActiveTournament);
         }
 
         

@@ -130,6 +130,21 @@ namespace bracket_server.Routing
                 return ResultFromException(user_dal.GetDataAccess(), ex);
             }
         }
+        public static IResult SaveKenPomData(AuthTokenCompetitorKenPomData token, ITournamentDAL tournament_dal, IUserDAL user_dal)
+        {
+            try
+            {
+                UserID user_id = ConfirmAuth(token.Token, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                if (token.KenPom == null) return Results.BadRequest();
+                bool success = tournament_dal.SaveKenpomData(token.KenPom);
+                return ResultFromBool(success, "error saving kenpom");
+            }
+            catch(Exception ex) 
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            };
+        }
 
         private static UserID ConfirmAuth(AuthToken token, IUserDAL dal)
         {
@@ -145,6 +160,7 @@ namespace bracket_server.Routing
             AddPost("/deletecompetitor", DeleteCompetitor);
             AddPost("/saveseeddata", SaveSeedData);
             AddPost("/finalizetournament", FinalizeTournament);
+            AddPost("/savekenpom", SaveKenPomData);
         }
     }
 }
