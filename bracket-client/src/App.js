@@ -12,6 +12,7 @@ import FakeTournament from './Components/Brackets/FakeTournament';
 import Admin from './Components/Admin/Admin'
 import Developer from './Components/Developer/Developer'
 import FillOutBracket from './Components/Brackets/FillOutBracket';
+import UserCompletedBracketsTable from './Components/Brackets/CompletedBrackets/UserCompletedBracketTable';
 function App() {
 
   let default_element = <FillOutBracket />
@@ -25,7 +26,7 @@ function App() {
             <Route element={<Layout />} >
               <Route index element={default_element} />
               <Route path="filloutbracket" element={<FillOutBracket />}/>
-              <Route path="faketournament" element={<FakeTournament />} />
+              <Route path="completedbrackets" element={<UserCompletedBracketsTable />} />
               <Route path="admin/*" element={<Admin />} />
               <Route path="developer" element={<Developer />} />
             </Route>

@@ -154,7 +154,7 @@ namespace bracket_server.Tournaments
 
         private static string GetBracketBase =
             @"
-        SELECT tournamentID, name, creator, _fk_type, tournamentFinalized, b._fk_user AS userID,
+        SELECT tournamentID, name, creator, _fk_type, tournamentFinalized, b._fk_user AS userID, b.completionTime,
 	        g._fk_division AS gameDivision, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame, g._fk_competitor_Winner,
 	        c._fk_seed, c.competitorName, c.competitorID, c._fk_division AS competitorDivision, 
             bgp._fk_competitor AS winnerPick, bgp._fk_game AS gamePick, b.bracketID, b.completed, b.champTotalPoints, b.creationTime
@@ -198,7 +198,7 @@ namespace bracket_server.Tournaments
 
         internal static string CompleteBracket = 
         @"
-        UPDATE user_bracket SET completed=TRUE
+        UPDATE user_bracket SET completed=TRUE, completionTime=now(6)
         WHERE _fk_user=@userID AND _fk_tournament=@tournamentID AND bracketID=@bracketID;
         ";
 
@@ -269,5 +269,18 @@ namespace bracket_server.Tournaments
             
             return sb.ToString();
         }
+
+        internal static string GetBracketSummaryForUser =
+            @"
+        SELECT b.bracketID, b.creationTime, b.completionTime, t.name AS tournamentName,competitorName   FROM user_bracket b
+        JOIN tournament t ON t.tournamentID=b._fk_tournament
+        JOIN (
+	        SELECT MAX(round) AS champRound, _fk_tournamentType FROM tournament_round GROUP BY _fk_tournamentType
+        ) maxRound ON maxRound._fk_tournamentType=t._fk_type
+        JOIN tournament_game g ON t.tournamentID=g._fk_tournament AND g._fk_tournamentRound=maxRound.champRound
+        JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND g.gameID=bgp._fk_game
+        JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID AND c.competitorID=bgp._fk_competitor
+        WHERE b.completed IS TRUE AND b._fk_user=@userID
+        ORDER BY b.completionTime DESC;";
     }
 }

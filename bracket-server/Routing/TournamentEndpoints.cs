@@ -132,6 +132,21 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult BracketSummariesForUser(AuthToken token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = user_dal.UserIDFromToken(token);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                List<BracketSummary> summaries = tournament_dal.BracketSummariesForUser(user_id);
+                return GoodResult(summaries);
+            }
+            catch(Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
         public override void AddRoutes()
         {
             AddGet("/faketournament", FakeTournament);
@@ -142,6 +157,7 @@ namespace bracket_server.Routing
             AddPost("/finalizecontestentry", FinalizeContestEntry);
             AddPost("/savepick", SavePick);
             AddPost("/smartfillbracket", SmartFillBracket);
+            AddPost("/bracketsforuser", BracketSummariesForUser);
         }
 
         

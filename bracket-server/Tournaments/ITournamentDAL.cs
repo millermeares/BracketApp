@@ -31,6 +31,8 @@ namespace bracket_server.Tournaments
 
         public bool SavePickChanges(List<PickChange> pick_changes);
 
+        public List<BracketSummary> BracketSummariesForUser(UserID userID);
+
 
     }
 }

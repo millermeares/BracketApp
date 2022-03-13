@@ -41,7 +41,7 @@ function Dashboard() {
                         <Link to="/filloutbracket">Fill Out Bracket</Link>
                     </Nav>
                     <Nav className="me-auto">
-                        <Link to="/home/faketournament">Fake Tournament</Link>
+                        <Link to="/completedbrackets">Completed Brackets</Link>
                     </Nav>
                     {role_dependent_components}
                     <Nav>

@@ -1,7 +1,7 @@
 ﻿using bracket_server.Brackets;
 using MillerAPI.DataAccess;
 using System.Data.Common;
-
+using static UserManagement.UserDataAccess.DBHelpers;
 namespace bracket_server.Tournaments
 {
     public class TournamentDAL : BaseDAL, ITournamentDAL
@@ -447,5 +447,25 @@ namespace bracket_server.Tournaments
             });
         }
 
+        public List<BracketSummary> BracketSummariesForUser(UserID userID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.GetBracketSummaryForUser, conn);
+                cmd.AddParameter("@userID", userID.ID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return ListFromReader(reader, BracketSummaryFromReader);
+            });
+        }
+
+        private BracketSummary BracketSummaryFromReader(DbDataReader reader)
+        {
+            string bracketID = GetString(reader, "bracketID");
+            DateTime creationTime = GetDatetime(reader, "creationTime");
+            DateTime completionTime = GetDatetime(reader, "completionTime");
+            string tournamentName = GetString(reader, "tournamentName");
+            string competitorName = GetString(reader, "competitorName");
+            return new BracketSummary(bracketID, tournamentName, completionTime, creationTime, competitorName);
+        }
     }
 }

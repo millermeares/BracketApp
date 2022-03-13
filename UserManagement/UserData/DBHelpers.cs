@@ -9,7 +9,7 @@ using UserManagement.UserModels;
 using static MillerAPI.DataAccess.DALHelpers;
 namespace UserManagement.UserDataAccess
 {
-    internal static class DBHelpers
+    public static class DBHelpers
     {
         
         public static void SigningUpParameters(this SigningUpUser user, DbCommand command)
