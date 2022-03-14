@@ -425,6 +425,8 @@ namespace bracket_server.Tournaments
         protected double SmartPickWinnerFromKenPom(Game game, SmartFillArgs args)
         {
             double spread = args.KenPom.GetKenPomSpreadDiff(game.Competitor1, game.Competitor2);
+            if (spread > 10) return 1; // too large of a spread for competitor 2 to lose
+            if (spread < -10) return 0; // same but for comp 1
             double team_1_win_chance = args.KenPom.WinPercentageFromKenPomSpreadDiff(spread);
             return team_1_win_chance;
         }
