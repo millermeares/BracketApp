@@ -310,7 +310,7 @@ namespace bracket_server.Tournaments
             if (_smartFillUnderdogFreeWins.ContainsKey(winner.ID)) return false; // an old win.
             if (!args.KenPom.BothPartiesHaveKenPom(comp1, comp2)) return false; // both parties don't have ken pom. not sure we'll get here.
             double spread = args.KenPom.GetKenPomSpreadDiff(comp1, comp2);
-            return (team_one_win && spread < -6) || (!team_one_win && spread > 6);
+            return (team_one_win && spread < -7) || (!team_one_win && spread > 7);
         }
 
         private void Increment(TournamentCompetitor winner)
@@ -320,11 +320,11 @@ namespace bracket_server.Tournaments
 
         protected Func<Game, SmartFillArgs, double> GetSmartFillFunction(Game game, SmartFillArgs args, bool consider_underdog = true)
         {
-            //if (consider_underdog && OneOfTeamsHasUnderdogWin(game))
-            //{
-            //    return SmartPickWinnerForUnderdogWinTeam;
-            //}
-            if(args.KenPom.BothPartiesHaveKenPom(game))
+            if (consider_underdog && OneOfTeamsHasUnderdogWin(game) && game.Round < 5)
+            {
+                return SmartPickWinnerForUnderdogWinTeam;
+            }
+            if (args.KenPom.BothPartiesHaveKenPom(game))
             {
                 return SmartPickWinnerFromKenPom;
             }
@@ -425,8 +425,8 @@ namespace bracket_server.Tournaments
         protected double SmartPickWinnerFromKenPom(Game game, SmartFillArgs args)
         {
             double spread = args.KenPom.GetKenPomSpreadDiff(game.Competitor1, game.Competitor2);
-            if (spread > 10) return 1; // too large of a spread for competitor 2 to lose
-            if (spread < -10) return 0; // same but for comp 1
+            if (spread > 10) return 1; // too large of a spread for competitor 1 to lose
+            if (spread < -10) return 0; // same but for comp 2
             double team_1_win_chance = args.KenPom.WinPercentageFromKenPomSpreadDiff(spread);
             return team_1_win_chance;
         }
