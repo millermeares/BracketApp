@@ -428,6 +428,7 @@ namespace bracket_server.Tournaments
             if (spread > 10) return 1; // too large of a spread for competitor 1 to lose
             if (spread < -10) return 0; // same but for comp 2
             double team_1_win_chance = args.KenPom.WinPercentageFromKenPomSpreadDiff(spread);
+            //string msg = $"Spread: {spread.ToString("0.##")}. Team 1 win chance: {team_1_win_chance.ToString("0.##")}.";
             return team_1_win_chance;
         }
 
