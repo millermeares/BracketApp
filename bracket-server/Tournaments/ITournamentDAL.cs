@@ -18,6 +18,7 @@ namespace bracket_server.Tournaments
         public Tournament GetTournamentTopLevelByID(string tournamentID);
 
         public string GetActiveBracketingTournamentID();
+        public bool InsertActiveBracketingTournamentID(string tournamentID);
 
         public GenericID GetUnfinishedLatestBracketIDForTournamentForUser(UserID user_id, string tournamentID);
 

@@ -520,10 +520,10 @@ namespace bracket_server.Tournaments
             {
                 return new KenPomData(0, 0, 0, 0);
             }
-            double efficiency = GetDouble(reader, "overallEfficiency");
-            double offensive_efficiency = GetDouble(reader, "offensiveEfficiency");
-            double defensive_efficiency = GetDouble(reader, "defensiveEfficiency");
-            double tempo = GetDouble(reader, "tempo");
+            double efficiency = GetDouble(reader, "overallEfficiency", double.MinValue);
+            double offensive_efficiency = GetDouble(reader, "offensiveEfficiency", double.MinValue);
+            double defensive_efficiency = GetDouble(reader, "defensiveEfficiency", double.MinValue);
+            double tempo = GetDouble(reader, "tempo", double.MinValue);
             return new KenPomData(offensive_efficiency, defensive_efficiency, tempo, efficiency);
         }
     }

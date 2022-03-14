@@ -8,3 +8,4 @@ CREATE TABLE ken_pom_data(
     PRIMARY KEY(_fk_tournament, _fk_competitor),
     CONSTRAINT ken_pom_fk FOREIGN KEY(_fk_tournament, _fk_competitor) REFERENCES competitor_tournament(_fk_tournament, competitorID)
 );
+

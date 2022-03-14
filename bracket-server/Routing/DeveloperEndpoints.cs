@@ -1,5 +1,6 @@
 ﻿using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
+using bracket_server.Tournaments.KenPom;
 
 namespace bracket_server.Routing
 {
@@ -25,6 +26,15 @@ namespace bracket_server.Routing
                         throw new Exception("failed to create tournament competitor");
                     }
                 }
+                TournamentIDAuthToken tournament_token = new TournamentIDAuthToken()
+                {
+                    Token = cat.Token,
+                    TournamentID = tournament.ID
+                };
+                IResult result = AdminEndpoints.FinalizeTournament(tournament_token, user_dal, tournament_dal);
+                tournament_dal.InsertActiveBracketingTournamentID(tournament.ID);
+                List<TournamentCompetitor> competitors = tournament_dal.TournamentCompetitorsForTournament(tournament.ID);
+                EnterFakeKenPomRatings(tournament, competitors, tournament_dal);
                 return EmptyValidResult();
             }
             catch(Exception ex)
@@ -81,6 +91,38 @@ namespace bracket_server.Routing
         public override void AddRoutes()
         {
             AddPost("/millertest", MillerTest);
+        }
+
+        private void EnterFakeKenPomRatings(Tournament tournament, List<TournamentCompetitor> competitors, ITournamentDAL dal) 
+        {
+            foreach(TournamentCompetitor competitor in competitors)
+            {
+                KenPomData data = GetFakeKenPomRating(competitor);
+                dal.SaveKenpomData(new KenPomDataReference()
+                {
+                    Tempo=data.Tempo,
+                    OffensiveEfficiency=data.OffensiveEfficiency,
+                    OverallEfficiency=data.OverallEfficiency,
+                    DefensiveEfficiency =data.DefensiveEfficiency,
+                    CompetitorID=competitor.ID,
+                    TournamentID=tournament.ID
+                });
+            }
+        }
+
+        private KenPomData GetFakeKenPomRating(TournamentCompetitor competitor)
+        {
+            double tempo = (Random.Shared.NextDouble() * 20) + 60;
+            double overall_efficiency = EfficiencyFromSeed(competitor.Seed);
+            double off_efficiency = EfficiencyFromSeed(competitor.Seed);
+            double def_efficiency = EfficiencyFromSeed(competitor.Seed);
+            return new KenPomData(off_efficiency, def_efficiency, tempo, overall_efficiency);
+        }
+
+        private double EfficiencyFromSeed(int seed)
+        {
+            int floor = (105 - (seed * 2));
+            return floor + (Random.Shared.NextDouble() * 15);
         }
     }
 }

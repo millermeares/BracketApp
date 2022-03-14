@@ -9,10 +9,10 @@ let odds_validator = (newValue, row, column) => {
             message: "odds must be numeric"
         }
     }
-    if(newValue < 0 || newValue > 100) {
+    if(newValue < -100 || newValue > 200) {
         return {
             valid: false,
-            message: "odds must be between 1 and 100"
+            message: "odds must be between -100 and 200"
         }
     }
     return true;

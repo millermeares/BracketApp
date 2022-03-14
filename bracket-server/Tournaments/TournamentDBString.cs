@@ -193,7 +193,7 @@ namespace bracket_server.Tournaments
 
         private static string _insertPickChangesBase = 
             @"
-        INSERT INTO bracket_game_prediction(_fk_bracket, _fk_tournament, _fk_game, _fk_competitor, pickTime)
+        INSERT INTO bracket_game_prediction(_fk_bracket, _fk_tournament, _fk_game, _fk_competitor, pickTime, isSmartPick)
         VALUES
         {0};";
 
@@ -211,11 +211,13 @@ namespace bracket_server.Tournaments
                 string p_comp_name = $"@ICompPick{i}";
                 string p_game_name = $"@IGamePick{i}";
                 string p_tournament_name = $"@ITournamentPick{i}";
+                string p_smart_pick = $"@ISmartPick{i}";
                 cmd.AddParameter(p_bracket_name, changes[i].BracketID);
                 cmd.AddParameter(p_comp_name, changes[i].CompetitorID);
                 cmd.AddParameter(p_game_name, changes[i].GameID);
                 cmd.AddParameter(p_tournament_name, changes[i].TournamentID);
-                sb_val.Append($"({p_bracket_name}, {p_tournament_name}, {p_game_name}, {p_comp_name}, now(6))");
+                cmd.AddParameter(p_smart_pick, changes[i].IsSmartPick);
+                sb_val.Append($"({p_bracket_name}, {p_tournament_name}, {p_game_name}, {p_comp_name}, now(6),{p_smart_pick})");
                 if(i != changes.Count - 1)
                 {
                     sb_val.Append(",");
@@ -273,7 +275,7 @@ namespace bracket_server.Tournaments
         ORDER BY b.completionTime DESC;";
 
 
-        private static string KenPomColumns = @"kpm.offensiveefficiency, kpm.defensiveefficiency, kpm.overallefficiency, kpm.tempo, IF(kpm.overallEfficiency IS NULL, FALSE, TRUE) AS 'hasKenPom'";
+        private static string KenPomColumns = @"kpm.offensiveEfficiency, kpm.defensiveEfficiency, kpm.overallEfficiency, kpm.tempo, IF(kpm.overallEfficiency IS NULL, FALSE, TRUE) AS 'hasKenPom'";
         private static string CompetitorColumns = @"c.competitorName, c.competitorID, c._fk_division, c._fk_seed, c._fk_tournament";
 
         internal static string KenPomDataForTournamentCompetitor()
@@ -285,10 +287,10 @@ namespace bracket_server.Tournaments
 
         internal static string KenPomDataForTournament()
         {
-            return $@"SELECT {KenPomColumns}, {CompetitorColumns}
+            return string.Format(@"SELECT {0}, {1}
             FROM competitor_tournament c
             LEFT OUTER JOIN ken_pom_data kpm ON c._fk_tournament=kpm._fk_tournament AND c.competitorID=kpm._fk_competitor
-            WHERE c._fk_tournament=@tournamentID;";
+            WHERE c._fk_tournament=@tournamentID;", KenPomColumns, CompetitorColumns);
         }
 
 

@@ -45,7 +45,7 @@ function Developer() {
     let handleMillerTest = () => {
         let obj = {
             Token: auth.token,
-            TournamentName: "TestTournament3"
+            TournamentName: "TestTournamentKenPom"
         }
         api.post("/millertest", obj).then(response => {
             if(!response.data.valid) {

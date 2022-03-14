@@ -14,6 +14,8 @@ namespace bracket_server.Tournaments
         public string TournamentType { get; set; } = string.Empty;
         private Dictionary<string, Game> _gameDictionary = new Dictionary<string, Game>();
         private Dictionary<string, TournamentCompetitor> _competitorDictionary = new Dictionary<string,TournamentCompetitor>();
+
+        private Dictionary<string, int> _smartFillUnderdogFreeWins = new Dictionary<string, int>();
         public static Tournament New(string name)
         {
             return new Tournament()
@@ -175,10 +177,10 @@ namespace bracket_server.Tournaments
             {
                 return changes; // winner already this.
             }
-            changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true));
+            changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
             if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID != p.GameID)
             {
-                changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, ChampionshipGame.Winner.ID, false));
+                changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, ChampionshipGame.Winner.ID, false, false));
             }
             return changes;
         }
@@ -214,7 +216,7 @@ namespace bracket_server.Tournaments
             bool change_necessary = !parent_game.HasCompetitor(p.CompetitorID);
             if (change_necessary)
             {
-                pick_changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true));
+                pick_changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
             }
 
             return pick_changes;
@@ -232,7 +234,7 @@ namespace bracket_server.Tournaments
                     return new List<PickChange>();
                 }
                 ChampionshipGame.Winner = null;
-                PickChange champ_change = new PickChange(bracketID, ID, ChampionshipGame.ID, competitor.ID, false);
+                PickChange champ_change = new PickChange(bracketID, ID, ChampionshipGame.ID, competitor.ID, false, false);
                 return new List<PickChange> { champ_change };
             }
 
@@ -242,7 +244,7 @@ namespace bracket_server.Tournaments
             if (parent_game == null) throw new ArgumentException();
             if(parent_game.HasCompetitor(competitor.ID))
             {
-                List<PickChange> changes = new List<PickChange>() { new PickChange(bracketID, ID, outcomeGame.ID, competitor.ID, false) };
+                List<PickChange> changes = new List<PickChange>() { new PickChange(bracketID, ID, outcomeGame.ID, competitor.ID, false, false) };
                 changes.AddRange(RemoveFromTree(parent_game, competitor, bracketID));
                 return changes;
             }
@@ -279,21 +281,163 @@ namespace bracket_server.Tournaments
 
         protected bool SmartPickWinner(Game game, SmartFillArgs args)
         {
-            game.Winner = SmartPickWinner(game.Competitor1, game.Competitor2, args);
+            Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
+            double team_1_win_percentage = func(game, args);
+            
+            game.Winner = WinnerFromTeamOneWinChance(team_1_win_percentage, game.Competitor1, game.Competitor2, args);
             return args.SavePickChange(args.MakePickChange(game, ID));
         }
 
-        protected TournamentCompetitor SmartPickWinner(TournamentCompetitor comp1, TournamentCompetitor comp2, SmartFillArgs args)
+
+        protected TournamentCompetitor WinnerFromTeamOneWinChance(double team_1_win_percentage, TournamentCompetitor comp1, TournamentCompetitor comp2, SmartFillArgs args)
         {
-            SeedData seed1 = args.SeedData.GetSeedData(comp1.Seed);
-            SeedData seed2 = args.SeedData.GetSeedData(comp2.Seed);
+            double random_double = Random.Shared.NextDouble();
+            bool team_one_winner = random_double < team_1_win_percentage;
+            TournamentCompetitor winner = team_one_winner ? comp1 : comp2;
+            if(OutcomeIsNewUnderdogWin(comp1, comp2, team_one_winner, args))
+            {
+                Increment(winner);
+            } else
+            {
+                DecrementUnderdogGameCount(winner);
+            }
+            return winner;
+        }
 
+        private bool OutcomeIsNewUnderdogWin(TournamentCompetitor comp1, TournamentCompetitor comp2, bool team_one_win, SmartFillArgs args)
+        {
+            TournamentCompetitor winner = team_one_win ? comp1 : comp2;
+            if (_smartFillUnderdogFreeWins.ContainsKey(winner.ID)) return false; // an old win.
+            if (!args.KenPom.BothPartiesHaveKenPom(comp1, comp2)) return false; // both parties don't have ken pom. not sure we'll get here.
+            double spread = args.KenPom.GetKenPomSpreadDiff(comp1, comp2);
+            return (team_one_win && spread < -6) || (!team_one_win && spread > 6);
+        }
+
+        private void Increment(TournamentCompetitor winner)
+        {
+            _smartFillUnderdogFreeWins.Add(winner.ID, 2); // two free wins.
+        }
+
+        protected Func<Game, SmartFillArgs, double> GetSmartFillFunction(Game game, SmartFillArgs args, bool consider_underdog = true)
+        {
+            //if (consider_underdog && OneOfTeamsHasUnderdogWin(game))
+            //{
+            //    return SmartPickWinnerForUnderdogWinTeam;
+            //}
+            if(args.KenPom.BothPartiesHaveKenPom(game))
+            {
+                return SmartPickWinnerFromKenPom;
+            }
+            return SmartPickWinnerFromSeedData;
+        }
+
+        protected double SmartPickWinnerForUnderdogWinTeam(Game game, SmartFillArgs args)
+        {
+            if(TeamIsUnderdogWithFreeWin(game.Competitor1) && TeamIsUnderdogWithFreeWin(game.Competitor2))
+            {
+                var actual_func = GetSmartFillFunction(game, args, false);
+                return actual_func(game, args);
+            }
+
+            if (TeamIsUnderdogWithFreeWin(game.Competitor1)) return 1.00;
+            if (TeamIsUnderdogWithFreeWin(game.Competitor2)) return 0.00;
+
+            if(TeamIsUnderdogWithBetterOdds(game.Competitor1) && TeamIsUnderdogWithBetterOdds(game.Competitor2))
+            {
+                var actual_func = GetSmartFillFunction(game, args, false);
+                return actual_func(game, args);
+            }
+
+            if(TeamIsUnderdogWithBetterOdds(game.Competitor1))
+            {
+                var actual_func = GetSmartFillFunction(game, args, false);
+                double team_1_win_chance = actual_func(game, args);
+                if (team_1_win_chance < 0.5)
+                {
+                    double diff = (0.5 - team_1_win_chance) / 2;
+                    team_1_win_chance += diff;
+                }
+                return team_1_win_chance;
+            }
+            if(TeamIsUnderdogWithBetterOdds(game.Competitor2))
+            {
+                var actual_func = GetSmartFillFunction(game, args, false);
+                // if favored, do nothing. this is rare.
+                double team_1_win_chance = actual_func(game, args);
+                if(team_1_win_chance > 0.5)
+                {
+                    double diff = (team_1_win_chance - 0.5) / 2;
+                    team_1_win_chance -= diff;
+                }
+                return team_1_win_chance;
+            }
+            var func = GetSmartFillFunction(game, args, false);
+            return func(game, args); // this shouldn't happen - consider throwing.
+
+        }
+
+        private void DecrementUnderdogGameCount(Game game)
+        {
+            DecrementUnderdogGameCount(game.Competitor1);
+            DecrementUnderdogGameCount(game.Competitor2);
+        }
+        private void DecrementUnderdogGameCount(TournamentCompetitor competitor)
+        {
+            if (!_smartFillUnderdogFreeWins.ContainsKey(competitor.ID)) return;
+            _smartFillUnderdogFreeWins[competitor.ID] = _smartFillUnderdogFreeWins[competitor.ID] - 1;
+            if(_smartFillUnderdogFreeWins[competitor.ID] < 0)
+            {
+                _smartFillUnderdogFreeWins.Remove(competitor.ID);
+            }
+        }
+
+        protected bool OneOfTeamsHasUnderdogWin(Game game)
+        {
+            return TeamHasUnderdogWin(game.Competitor1) || TeamHasUnderdogWin(game.Competitor2);
+        }
+
+        private bool TeamHasUnderdogWin(TournamentCompetitor comp)
+        {
+            return _smartFillUnderdogFreeWins.ContainsKey(comp.ID);
+        }
+
+        protected bool OneOfTheTeamsIsUnderdogWithFreeWin(Game game)
+        {
+            return TeamIsUnderdogWithFreeWin(game.Competitor1) || TeamIsUnderdogWithFreeWin(game.Competitor2);
+        }
+
+        private bool TeamIsUnderdogWithFreeWin(TournamentCompetitor comp)
+        {
+            return _smartFillUnderdogFreeWins.ContainsKey(comp.ID) && _smartFillUnderdogFreeWins[comp.ID] > 0;
+        }
+
+        protected bool OneOfTheTeamsIsUnderdogWithBetterOdds(Game game)
+        {
+            return TeamIsUnderdogWithBetterOdds(game.Competitor1) && TeamIsUnderdogWithBetterOdds(game.Competitor2);
+        }
+
+        private bool TeamIsUnderdogWithBetterOdds(TournamentCompetitor comp)
+        {
+            return _smartFillUnderdogFreeWins.ContainsKey(comp.ID) && _smartFillUnderdogFreeWins[comp.ID] == 0;
+        }
+        
+
+        protected double SmartPickWinnerFromKenPom(Game game, SmartFillArgs args)
+        {
+            double spread = args.KenPom.GetKenPomSpreadDiff(game.Competitor1, game.Competitor2);
+            double team_1_win_chance = args.KenPom.WinPercentageFromKenPomSpreadDiff(spread);
+            return team_1_win_chance;
+        }
+
+
+        protected double SmartPickWinnerFromSeedData(Game game, SmartFillArgs args)
+        {
+            if (game.Competitor1 == null || game.Competitor2 == null) throw new ArgumentException("competitors null");
+            SeedData seed1 = args.SeedData.GetSeedData(game.Competitor1.Seed);
+            SeedData seed2 = args.SeedData.GetSeedData(game.Competitor2.Seed);
             double total_final_four_odds = seed1.FinalFourOdds + seed2.FinalFourOdds;
-
             double outcome_double = GetRandomDouble(total_final_four_odds);
-
-            bool one_win = outcome_double < seed1.FinalFourOdds;
-            return one_win ? comp1 : comp2;
+            return outcome_double;
         }
 
         protected double GetRandomDouble(double multiplier)

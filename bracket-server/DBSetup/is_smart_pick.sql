@@ -1,0 +1,1 @@
+ALTER TABLE bracket_game_prediction ADD COLUMN isSmartPick BOOLEAN NOT NULL;

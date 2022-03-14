@@ -1,5 +1,6 @@
 ﻿using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
+using bracket_server.Tournaments.KenPom;
 
 namespace bracket_server.Brackets
 {
@@ -60,7 +61,8 @@ namespace bracket_server.Brackets
         private SmartFillArgs GetSmartFillArgs(ITournamentDAL dal)
         {
             SmartFillArgs args = new SmartFillArgs(dal, ID);
-            args.SeedData = GetSeedDataCollection(dal);
+            args.SetSeedData(GetSeedDataCollection(dal));
+            args.SetKenPomData(GetKenPomCollection(dal));
             return args;
         }
 
@@ -74,6 +76,12 @@ namespace bracket_server.Brackets
         {
             List<SeedData> seed_data = dal.GetSeedDataForTournamentType(Tournament.TournamentType);
             return new SeedDataCollection(seed_data);
+        }
+
+        private KenPomDataCollection GetKenPomCollection(ITournamentDAL dal)
+        {
+            Dictionary<string, KenPomData> data = dal.KenPomDataForTournament(Tournament.ID);
+            return new KenPomDataCollection(data);
         }
     }
 }

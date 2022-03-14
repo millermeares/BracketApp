@@ -84,7 +84,7 @@ function FillOutBracket() {
         <div>
             <div className="d-flex justify-content-evenly">
                 <Button onClick={submitBracket}>Submit Bracket</Button>
-                <Button onClick={autoFillBracket}>SmartFill Bracket (still dumb for now)</Button>
+                <Button onClick={autoFillBracket}>SmartFill Bracket</Button>
             </div>
             
             <UserBracket {...bracket_props} />
