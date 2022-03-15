@@ -23,7 +23,11 @@ function UserExposureReport() {
         return <div>Loading Report...</div> 
     }
     return (
-        <ExposureReportTable {...report} />
+        <div>
+            <div>Below is a list of the percentage of brackets in which you selected each team to win in each respective round.</div>
+            <ExposureReportTable {...report} />
+        </div>
+        
     )
 }
 
