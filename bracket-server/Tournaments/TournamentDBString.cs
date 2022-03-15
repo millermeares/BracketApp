@@ -309,7 +309,7 @@ namespace bracket_server.Tournaments
         ";
 
         private static string TotalBracketBase = 
-            @"SELECT COUNT(bracketID) FROM user_bracket b WHERE _fk_tournament=@tournamentID {0};";
+            @"SELECT COUNT(bracketID) FROM user_bracket b WHERE b.completed IS TRUE AND _fk_tournament=@tournamentID {0};";
 
         internal static string BracketCountForUserTournament()
         {
@@ -326,7 +326,7 @@ namespace bracket_server.Tournaments
         SELECT {0}, g._fk_tournamentRound, COUNT(bgp._fk_game) AS 'appearances' FROM tournament t
         JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID
         LEFT OUTER JOIN bracket_game_prediction bgp ON bgp._fk_tournament=c._fk_tournament AND c.competitorID=bgp._fk_competitor
-        LEFT OUTER JOIN user_bracket b ON b.bracketID=bgp._fk_bracket
+        LEFT OUTER JOIN user_bracket b ON b.bracketID=bgp._fk_bracket AND b.completed IS TRUE
         LEFT OUTER JOIN tournament_game g ON g.gameID=bgp._fk_game AND g._fk_tournament=c._fk_tournament
         WHERE t.tournamentID=@tournamentID {1}
         GROUP BY c.competitorID, g._fk_tournamentRound 
