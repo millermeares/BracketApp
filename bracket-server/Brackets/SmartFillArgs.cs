@@ -10,6 +10,9 @@ namespace bracket_server.Brackets
         public SeedDataCollection SeedData { get; private set; } = new SeedDataCollection();
         public bool SavePicks { get; set; }
         public KenPomDataCollection KenPom { get; private set; } = new KenPomDataCollection();
+        public int AutoWinSpread { get; private set; } = 10;
+        public int MaxUnderdogRuns { get; private set; } = 2;
+        public int BigUnderdogThreshold { get; private set; } = 7;
         public SmartFillArgs(ITournamentDAL dal, string bracketID)
         {
             DAL = dal;
@@ -30,6 +33,11 @@ namespace bracket_server.Brackets
         public bool SavePickChange(PickChange change)
         {
             return DAL.SavePickChanges(new List<PickChange>() { change });
+        }
+        public bool SavePickChanges(List<PickChange> changes)
+        {
+            if (changes.Count == 0) return true;
+            return DAL.SavePickChanges(changes);
         }
 
         public PickChange MakePickChange(Game game, string tournamentID)

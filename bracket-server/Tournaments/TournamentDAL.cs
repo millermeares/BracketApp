@@ -1,4 +1,5 @@
 ﻿using bracket_server.Brackets;
+using bracket_server.Tournaments.Exposure;
 using bracket_server.Tournaments.KenPom;
 using MillerAPI.DataAccess;
 using System.Data.Common;
@@ -241,7 +242,7 @@ namespace bracket_server.Tournaments
             {
                 using DbCommand cmd = GetCommand(TournamentDBString.GetStringParam, conn);
                 cmd.AddParameter("@key", key);
-                return ScalarStringFromReader(cmd);
+                return ScalarStringFromCommand(cmd);
             });
         }
 
@@ -405,7 +406,7 @@ namespace bracket_server.Tournaments
                 using DbCommand cmd = GetCommand(TournamentDBString.GetLatestUnfinishedBracketForTournamentForUser, conn);
                 cmd.AddParameter("@userID", user_id.ID);
                 cmd.AddParameter("@tournamentID", tournamentID);
-                string bracket_id = ScalarStringFromReader(cmd);
+                string bracket_id = ScalarStringFromCommand(cmd);
                 return string.IsNullOrEmpty(bracket_id) ? GenericID.MakeEmpty() : new GenericID(bracket_id);
             });
         }
@@ -526,5 +527,89 @@ namespace bracket_server.Tournaments
             double tempo = GetDouble(reader, "tempo", double.MinValue);
             return new KenPomData(offensive_efficiency, defensive_efficiency, tempo, efficiency);
         }
+
+        public ExposureReport ExposureReportForUser(UserID userID, string tournamentID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                ExposureReport? report = null;
+                using(DbCommand cmd = GetCommand(TournamentDBString.BracketCountForUserTournament(), conn))
+                {
+                    cmd.AddParameter("@tournamentID", tournamentID);
+                    cmd.AddParameter("@userID", userID.ID);
+                    int count = NonNullScalarIntFromCommand(cmd);
+                    report = new ExposureReport(count, tournamentID);
+                }
+                if (report == null) throw new NullReferenceException("report should not be null here");
+                using (DbCommand exposure_cmd = GetCommand(TournamentDBString.ExposureSummaryForTournament(), conn))
+                {
+                    exposure_cmd.AddParameter("@tournamentID", tournamentID);
+                    exposure_cmd.AddParameter("@userID", userID.ID);
+                    using DbDataReader reader = exposure_cmd.ExecuteReader();
+                    FillExposureReportFromReader(reader, report);
+                    return report;
+                }
+            });
+        }
+
+        public ExposureReport ExposureReportTournament(string tournamentID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                ExposureReport? report = null;
+                using (DbCommand count_cmd = GetCommand(TournamentDBString.BracketCountTournament(), conn))
+                {
+                    count_cmd.AddParameter("@tournamentID", tournamentID);
+                    int count = NonNullScalarIntFromCommand(count_cmd);
+                    report = new ExposureReport(count, tournamentID);
+                }
+                if (report == null) throw new NullReferenceException("report should not be null here");
+
+                using (DbCommand cmd = GetCommand(TournamentDBString.ExposureSummaryForTournament(), conn))
+                {
+                    cmd.AddParameter("@tournamentID", tournamentID);
+                    using DbDataReader reader = cmd.ExecuteReader();
+                    FillExposureReportFromReader(reader, report);
+                    return report;
+                }
+            });
+        }
+
+        private void FillExposureReportFromReader(DbDataReader reader, ExposureReport report)
+        {
+            TeamExposureSummary summary = TeamExposureSummary.MakeEmpty();
+            while (reader.Read())
+            {
+                string competitor_id = GetString(reader, "competitorID");
+                if(summary.IsEmpty() || summary.Competitor.ID != competitor_id)
+                {
+                    TournamentCompetitor competitor = TournamentCompetitorFromReader(reader);
+                    summary = new TeamExposureSummary(competitor);
+                    report.AddExposureSummary(summary);
+                }
+                // now read each line in. 
+                int appearances = GetInt(reader, "appearances", 0);
+                int round = GetInt(reader, "_fk_tournamentRound");
+                summary.AddAppearancesInRound(round, appearances);
+            }
+        }
+        public List<Round> GetRoundsForTournament(string tournamentID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.RoundsForTournament, conn);
+                cmd.AddParameter("@tournamentID", tournamentID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return ListFromReader(reader, RoundFromReader);
+            });
+        }
+
+        private Round RoundFromReader(DbDataReader reader)
+        {
+            int round = GetInt(reader, "round");
+            string name = GetString(reader, "name");
+            return new Round(round, name);
+        }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using bracket_server.Brackets;
+using bracket_server.Tournaments.Exposure;
 using bracket_server.Tournaments.KenPom;
 namespace bracket_server.Tournaments
 {
@@ -38,6 +39,11 @@ namespace bracket_server.Tournaments
         public KenPomData KenPomDataForCompetitor(string tournamentID, string competitor);
         public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID);
         public Dictionary<string, KenPomData> KenPomDataForTournament(string tournamentID);
+
+        public ExposureReport ExposureReportForUser(UserID userID, string tournamentID);
+        public ExposureReport ExposureReportTournament(string tournamentID);
+
+        public List<Round> GetRoundsForTournament(string tournamentID);
 
 
     }

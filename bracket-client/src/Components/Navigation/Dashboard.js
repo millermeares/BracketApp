@@ -40,6 +40,9 @@ function Dashboard() {
                     <Nav className="me-auto">
                         <Link to="/completedbrackets">Completed Brackets</Link>
                     </Nav>
+                    <Nav className="me-auto">
+                        <Link to="/userexposurereport">Exposure Report</Link>
+                    </Nav>
                     {role_dependent_components}
                     <Nav>
                         <Navbar.Text className="justify-content-end">

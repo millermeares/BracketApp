@@ -112,11 +112,24 @@ namespace MillerAPI.DataAccess
             return list;
         }
 
-        protected string ScalarStringFromReader(DbCommand cmd)
+        protected string ScalarStringFromCommand(DbCommand cmd)
         {
             object? val = cmd.ExecuteScalar();
             if (val == null) return string.Empty;
             return (string)val;
+        }
+
+        protected int ScalarIntFromCommand(DbCommand cmd)
+        {
+            object? val = cmd.ExecuteScalar();
+            if (val == null) return -1;
+            return Convert.ToInt32(val); // could use convert as well.
+        }
+
+        protected int NonNullScalarIntFromCommand(DbCommand cmd)
+        {
+            object? val = cmd.ExecuteScalar();
+            return Convert.ToInt32(val);
         }
     }
 }

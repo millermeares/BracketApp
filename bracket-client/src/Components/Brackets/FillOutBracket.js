@@ -61,6 +61,9 @@ function FillOutBracket() {
     }
 
     let autoFillBracket = () => {
+        if(!allow_editing) {
+            return;
+        }
         allow_editing = false;
         let obj = {
             ID: fillingOutBracket.id, 

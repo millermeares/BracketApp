@@ -14,6 +14,7 @@ import Developer from './Components/Developer/Developer'
 import FillOutBracket from './Components/Brackets/FillOutBracket';
 import UserCompletedBracketsTable from './Components/Brackets/CompletedBrackets/UserCompletedBracketTable';
 import CompletedBracket from './Components/Brackets/CompletedBrackets/CompletedBracket';
+import UserExposureReport from './Components/Brackets/Exposure/UserExposureReport';
 function App() {
 
   let default_element = <FillOutBracket />
@@ -29,6 +30,7 @@ function App() {
               <Route index element={default_element} />
               <Route path="filloutbracket" element={<FillOutBracket />}/>
               <Route path="completedbrackets" element={<UserCompletedBracketsTable />} />
+              <Route path="userexposurereport" element={<UserExposureReport />} />
               <Route path="admin/*" element={<Admin />} />
               <Route path="developer" element={<Developer />} />
             </Route>

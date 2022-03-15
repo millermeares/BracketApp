@@ -16,6 +16,12 @@ namespace bracket_server.Tournaments
             @"INSERT INTO tournament_round(_fk_tournament, round, name)
             VALUES(@tournamentID, @tournamentRound, @roundName);";
 
+        internal static string RoundsForTournament =
+            @"SELECT r.round, r.name 
+            FROM tournament_round r
+            JOIN tournament t ON t._fk_type=_fk_tournamentType
+            WHERE t.tournamentID=@tournamentID;";
+
         internal static string InsertDivision = 
             @"INSERT INTO tournament_division(_fk_tournament, divisionName)
             VALUES(@tournamentID, @divisionName);";
@@ -301,5 +307,39 @@ namespace bracket_server.Tournaments
         INSERT INTO ken_pom_data(_fk_competitor, _fk_tournament, offensiveefficiency, defensiveefficiency, overallefficiency, tempo)
         VALUES(@competitorID, @tournamentID, @offensiveEfficiency, @defensiveEfficiency, @overallEfficiency, @tempo);
         ";
+
+        private static string TotalBracketBase = 
+            @"SELECT COUNT(bracketID) FROM user_bracket b WHERE _fk_tournament=@tournamentID {0};";
+
+        internal static string BracketCountForUserTournament()
+        {
+            return string.Format(TotalBracketBase, " AND b._fk_user=@userID");
+        }
+
+        internal static string BracketCountTournament()
+        {
+            return string.Format(TotalBracketBase, string.Empty);
+        }
+
+        
+        private static string ExposureSummaryBase = @"
+        SELECT {0}, g._fk_tournamentRound, COUNT(bgp._fk_game) AS 'appearances' FROM tournament t
+        JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID
+        LEFT OUTER JOIN bracket_game_prediction bgp ON bgp._fk_tournament=c._fk_tournament AND c.competitorID=bgp._fk_competitor
+        LEFT OUTER JOIN user_bracket b ON b.bracketID=bgp._fk_bracket
+        LEFT OUTER JOIN tournament_game g ON g.gameID=bgp._fk_game AND g._fk_tournament=c._fk_tournament
+        WHERE t.tournamentID=@tournamentID {1}
+        GROUP BY c.competitorID, g._fk_tournamentRound 
+        ORDER BY competitorName, _fk_tournamentRound;";
+
+        internal static string ExposureSummaryForUser()
+        {
+            return string.Format(ExposureSummaryBase, CompetitorColumns, "AND b._fk_user=@userID");
+        }
+
+        internal static string ExposureSummaryForTournament()
+        {
+            return string.Format(ExposureSummaryBase, CompetitorColumns, string.Empty);
+        }
     }
 }

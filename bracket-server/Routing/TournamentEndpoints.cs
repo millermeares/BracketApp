@@ -1,6 +1,7 @@
 ﻿using bracket_server.Brackets;
 using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
+using bracket_server.Tournaments.Exposure;
 using bracket_server.Tournaments.KenPom;
 
 namespace bracket_server.Routing
@@ -179,7 +180,35 @@ namespace bracket_server.Routing
             }
         }
 
-        
+        public static IResult ExposureReportForUser(AuthToken token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = user_dal.UserIDFromToken(token);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                string active_tournament = tournament_dal.GetActiveBracketingTournamentID();
+                ExposureReport report = tournament_dal.ExposureReportForUser(user_id, active_tournament);
+                return GoodResult(report.ReportByRound(tournament_dal));
+            }catch(Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
+        public static IResult ExposureReportForAll(AuthToken token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                //todo: decide who is going to be able to run this query. 
+                string active_tournament = tournament_dal.GetActiveBracketingTournamentID();
+                ExposureReport report = tournament_dal.ExposureReportTournament(active_tournament);
+                return GoodResult(report.ReportByRound(tournament_dal));
+            }
+            catch(Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
 
         public override void AddRoutes()
         {
@@ -194,6 +223,7 @@ namespace bracket_server.Routing
             AddPost("/bracketsforuser", BracketSummariesForUser);
             AddGet("/completedbracket/{bracketID}", CompletedBracket);
             AddGet("/kenpomdata", KenPomDataForActiveTournament);
+            AddPost("/exposureforuser", ExposureReportForUser);
         }
 
         

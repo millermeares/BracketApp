@@ -94,5 +94,7 @@ SELECT kpm.offensiveefficiency, kpm.defensiveefficiency, kpm.overallefficiency, 
             FROM competitor_tournament c
             LEFT OUTER JOIN ken_pom_data kpm ON c._fk_tournament=kpm._fk_tournament AND c.competitorID=kpm._fk_competitor
             WHERE c._fk_tournament=@tournamentID;
-            
-            
+	select * from ken_pom_data;
+    
+    
+    select * from tournament;

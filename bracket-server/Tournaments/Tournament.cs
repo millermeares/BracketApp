@@ -16,6 +16,9 @@ namespace bracket_server.Tournaments
         private Dictionary<string, TournamentCompetitor> _competitorDictionary = new Dictionary<string,TournamentCompetitor>();
 
         private Dictionary<string, int> _smartFillUnderdogFreeWins = new Dictionary<string, int>();
+
+
+        private int UnderdogRunTeams = 0;
         public static Tournament New(string name)
         {
             return new Tournament()
@@ -254,38 +257,42 @@ namespace bracket_server.Tournaments
         // for now, completely random. 
         public void Autofill(SmartFillArgs args) // this could bring in the info like SeedData dictionary, etc.
         {
-            ChampionshipGame.Winner = SmartFillGamesToGetWinner(ChampionshipGame, args);
+            List<PickChange> changes = new List<PickChange>();
+            ChampionshipGame.Winner = SmartFillGamesToGetWinner(ChampionshipGame, args, ref changes);
+            args.SavePickChanges(changes);
         }
 
-        protected TournamentCompetitor? SmartFillGamesToGetWinner(Game game, SmartFillArgs args)
+        protected TournamentCompetitor? SmartFillGamesToGetWinner(Game game, SmartFillArgs args, ref List<PickChange> pick_changes)
         {
             if (game.HasWinner()) return game.Winner;
             if(!game.HasCompetitors())
             {
-                if(!game.HasCompetitor1())
+                bool do_comp_1_first = Random.Shared.NextDouble() > 0.5; // do this to make the order that things are fill in random.
+                // this is.. fine but we probably won't have many cinderella teams on opposite sides of the bracket.
+                if(do_comp_1_first && !game.HasCompetitor1())
                 {
-                    game.Competitor1 = SmartFillGamesToGetWinner(game.LeftGame, args);
+                    game.Competitor1 = SmartFillGamesToGetWinner(game.LeftGame, args, ref pick_changes);
                 }
                 if(!game.HasCompetitor2())
                 {
-                    game.Competitor2 = SmartFillGamesToGetWinner(game.RightGame, args);
+                    game.Competitor2 = SmartFillGamesToGetWinner(game.RightGame, args, ref pick_changes);
+                }
+                if(!do_comp_1_first && !game.HasCompetitor1())
+                {
+                    game.Competitor1 = SmartFillGamesToGetWinner(game.LeftGame, args, ref pick_changes);
                 }
             }
-            bool success = SmartPickWinner(game, args);
-            if(!success)
-            {
-                throw new ArgumentException("Error occurred while filling picking smart winner");
-            }
+            pick_changes.Add(SmartPickWinner(game, args));
             return game.Winner;
         }
 
-        protected bool SmartPickWinner(Game game, SmartFillArgs args)
+        protected PickChange SmartPickWinner(Game game, SmartFillArgs args)
         {
             Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
             double team_1_win_percentage = func(game, args);
             
             game.Winner = WinnerFromTeamOneWinChance(team_1_win_percentage, game.Competitor1, game.Competitor2, args);
-            return args.SavePickChange(args.MakePickChange(game, ID));
+            return args.MakePickChange(game, ID);
         }
 
 
@@ -310,12 +317,13 @@ namespace bracket_server.Tournaments
             if (_smartFillUnderdogFreeWins.ContainsKey(winner.ID)) return false; // an old win.
             if (!args.KenPom.BothPartiesHaveKenPom(comp1, comp2)) return false; // both parties don't have ken pom. not sure we'll get here.
             double spread = args.KenPom.GetKenPomSpreadDiff(comp1, comp2);
-            return (team_one_win && spread < -7) || (!team_one_win && spread > 7);
+            return (team_one_win && spread < (-1 * args.BigUnderdogThreshold)) || (!team_one_win && spread > args.BigUnderdogThreshold);
         }
 
         private void Increment(TournamentCompetitor winner)
         {
             _smartFillUnderdogFreeWins.Add(winner.ID, 2); // two free wins.
+            UnderdogRunTeams++;
         }
 
         protected Func<Game, SmartFillArgs, double> GetSmartFillFunction(Game game, SmartFillArgs args, bool consider_underdog = true)
@@ -425,8 +433,16 @@ namespace bracket_server.Tournaments
         protected double SmartPickWinnerFromKenPom(Game game, SmartFillArgs args)
         {
             double spread = args.KenPom.GetKenPomSpreadDiff(game.Competitor1, game.Competitor2);
-            if (spread > 10) return 1; // too large of a spread for competitor 1 to lose
-            if (spread < -10) return 0; // same but for comp 2
+            if (spread > args.AutoWinSpread) return 1; // too large of a spread for competitor 1 to lose
+            if (spread < -1 * args.AutoWinSpread) return 0; // same but for comp 2
+
+            // if spread is between autowinspread and big upset threshold and there are no more underdog wins allowed, then auto-win to the favorite.
+            if(Math.Abs(spread) < args.AutoWinSpread && Math.Abs(spread) > args.BigUnderdogThreshold && !UnderdogRunAllowed(args))
+            {
+                // auto-win to the favorite.
+                return spread > 0 ? 1 : 0;
+            }
+
             double team_1_win_chance = args.KenPom.WinPercentageFromKenPomSpreadDiff(spread);
             //string msg = $"Spread: {spread.ToString("0.##")}. Team 1 win chance: {team_1_win_chance.ToString("0.##")}.";
             return team_1_win_chance;
@@ -446,6 +462,11 @@ namespace bracket_server.Tournaments
         protected double GetRandomDouble(double multiplier)
         {
             return Random.Shared.NextDouble() * multiplier;
+        }
+
+        private bool UnderdogRunAllowed(SmartFillArgs args)
+        {
+            return UnderdogRunTeams < args.MaxUnderdogRuns;
         }
 
         

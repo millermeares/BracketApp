@@ -4,10 +4,10 @@
     {
 
         public TournamentCompetitor Competitor { get; set; }
-        public KenPomData Data {get; set;}
+        public KenPomData Data { get; set; }
         public CompetitorKenPomData(TournamentCompetitor competitor, KenPomData data)
         {
-            Competitor= competitor;
+            Competitor = competitor;
             Data = data;
         }
 
