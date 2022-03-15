@@ -541,7 +541,7 @@ namespace bracket_server.Tournaments
                     report = new ExposureReport(count, tournamentID);
                 }
                 if (report == null) throw new NullReferenceException("report should not be null here");
-                using (DbCommand exposure_cmd = GetCommand(TournamentDBString.ExposureSummaryForTournament(), conn))
+                using (DbCommand exposure_cmd = GetCommand(TournamentDBString.ExposureSummaryForUser(), conn))
                 {
                     exposure_cmd.AddParameter("@tournamentID", tournamentID);
                     exposure_cmd.AddParameter("@userID", userID.ID);
