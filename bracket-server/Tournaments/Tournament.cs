@@ -59,7 +59,7 @@ namespace bracket_server.Tournaments
         }
 
 
-        private void ApplyPick(Pick p)
+        private void ApplyPick(BracketPick p)
         {
             if(p.GameID == ChampionshipGame.ID)
             {
@@ -81,14 +81,14 @@ namespace bracket_server.Tournaments
             }
         }
 
-        private void SetGameWinnerFromDict(Game game, Pick p)
+        private void SetGameWinnerFromDict(Game game, BracketPick p)
         {
             game.Winner = _competitorDictionary[p.CompetitorID];
         }
 
-        public void ApplyPicks(List<Pick> picks)
+        public void ApplyPicks(List<BracketPick> picks)
         {
-            foreach(Pick p in picks)
+            foreach(BracketPick p in picks)
             {
                 ApplyPick(p);
             }
@@ -173,28 +173,28 @@ namespace bracket_server.Tournaments
             return ChampionshipGame.FullyPopulated();
         }
 
-        private List<PickChange> PickChangesChampGame(Pick p)
+        private List<BracketPickChange> PickChangesChampGame(BracketPick p)
         {
-            List<PickChange> changes = new List<PickChange>();
+            List<BracketPickChange> changes = new List<BracketPickChange>();
             if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID == p.CompetitorID)
             {
                 return changes; // winner already this.
             }
-            changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
+            changes.Add(new BracketPickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
             if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID != p.GameID)
             {
-                changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, ChampionshipGame.Winner.ID, false, false));
+                changes.Add(new BracketPickChange(p.BracketID, p.TournamentID, p.GameID, ChampionshipGame.Winner.ID, false, false));
             }
             return changes;
         }
 
-        public List<PickChange> GetPickChanges(Pick p)
+        public List<BracketPickChange> GetPickChanges(BracketPick p)
         {
             if(p.GameID == ChampionshipGame.ID)
             {
                 return PickChangesChampGame(p);
             }
-            List<PickChange> pick_changes = new List<PickChange>();
+            List<BracketPickChange> pick_changes = new List<BracketPickChange>();
             Game? parent_game = ChampionshipGame.FindParentGame(p.GameID);
             if (parent_game == null) throw new ArgumentException("could not find parent game when getting pick changes.");
 
@@ -219,7 +219,7 @@ namespace bracket_server.Tournaments
             bool change_necessary = !parent_game.HasCompetitor(p.CompetitorID);
             if (change_necessary)
             {
-                pick_changes.Add(new PickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
+                pick_changes.Add(new BracketPickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
             }
 
             return pick_changes;
@@ -227,18 +227,18 @@ namespace bracket_server.Tournaments
 
         // we want to remove the old winner though outcome game. 
         // if a competitor is present in the parent, that means we need to add a removal pick change for the child game. 
-        private List<PickChange> RemoveFromTree(Game outcomeGame, TournamentCompetitor competitor, string bracketID)
+        private List<BracketPickChange> RemoveFromTree(Game outcomeGame, TournamentCompetitor competitor, string bracketID)
         {
             if (outcomeGame == ChampionshipGame)
             {
                 // ok.. what here? 
                 if (ChampionshipGame.Winner != competitor)
                 {
-                    return new List<PickChange>();
+                    return new List<BracketPickChange>();
                 }
                 ChampionshipGame.Winner = null;
-                PickChange champ_change = new PickChange(bracketID, ID, ChampionshipGame.ID, competitor.ID, false, false);
-                return new List<PickChange> { champ_change };
+                BracketPickChange champ_change = new BracketPickChange(bracketID, ID, ChampionshipGame.ID, competitor.ID, false, false);
+                return new List<BracketPickChange> { champ_change };
             }
 
             // traveling up tree. 
@@ -247,28 +247,29 @@ namespace bracket_server.Tournaments
             if (parent_game == null) throw new ArgumentException();
             if(parent_game.HasCompetitor(competitor.ID))
             {
-                List<PickChange> changes = new List<PickChange>() { new PickChange(bracketID, ID, outcomeGame.ID, competitor.ID, false, false) };
+                List<BracketPickChange> changes = new List<BracketPickChange>() { new BracketPickChange(bracketID, ID, outcomeGame.ID, competitor.ID, false, false) };
                 changes.AddRange(RemoveFromTree(parent_game, competitor, bracketID));
                 return changes;
             }
-            return new List<PickChange>();
+            return new List<BracketPickChange>();
         }
 
-        // for now, completely random. 
-        public void Autofill(SmartFillArgs args) // this could bring in the info like SeedData dictionary, etc.
+        public List<Pick> Smartfill(SmartFillArgs args) // this could bring in the info like SeedData dictionary, etc.
         {
-            List<PickChange> changes = new List<PickChange>();
+            List<Pick> changes = new List<Pick>();
             ChampionshipGame.Winner = SmartFillGamesToGetWinner(ChampionshipGame, args, ref changes);
-            args.SavePickChanges(changes);
+            ResetUnderdogCounters();
+            return changes;
         }
 
-        protected TournamentCompetitor? SmartFillGamesToGetWinner(Game game, SmartFillArgs args, ref List<PickChange> pick_changes)
+        protected TournamentCompetitor? SmartFillGamesToGetWinner(Game game, SmartFillArgs args, ref List<Pick> pick_changes)
         {
             if (game.HasWinner()) return game.Winner;
             if(!game.HasCompetitors())
             {
                 bool do_comp_1_first = Random.Shared.NextDouble() > 0.5; // do this to make the order that things are fill in random.
-                // this is.. fine but we probably won't have many cinderella teams on opposite sides of the bracket.
+                // this is.. fine but we probably won't have many cinderella teams on opposite sides of the bracket. 
+                // killen says that's a good team ^^ oh
                 if(do_comp_1_first && !game.HasCompetitor1())
                 {
                     game.Competitor1 = SmartFillGamesToGetWinner(game.LeftGame, args, ref pick_changes);
@@ -286,13 +287,13 @@ namespace bracket_server.Tournaments
             return game.Winner;
         }
 
-        protected PickChange SmartPickWinner(Game game, SmartFillArgs args)
+        protected Pick SmartPickWinner(Game game, SmartFillArgs args)
         {
             Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
             double team_1_win_percentage = func(game, args);
             
             game.Winner = WinnerFromTeamOneWinChance(team_1_win_percentage, game.Competitor1, game.Competitor2, args);
-            return args.MakePickChange(game, ID);
+            return args.MakePick(game, ID);
         }
 
 
@@ -469,9 +470,21 @@ namespace bracket_server.Tournaments
             return UnderdogRunTeams < args.MaxUnderdogRuns;
         }
 
-        
+        private void ResetUnderdogCounters()
+        {
+            _smartFillUnderdogFreeWins.Clear();
+            UnderdogRunTeams = 0;
+        }
 
-        
+        internal void ResetForNewSimulation()
+        {
+            ChampionshipGame.ClearCompetitorsFromNonBaseGames();
+            ResetUnderdogCounters(); // might be double resetting some things which is fine.
+        }
 
+        internal List<TournamentCompetitor> GetCompetitors()
+        {
+            return _competitorDictionary.Values.ToList();
+        }
     }
 }

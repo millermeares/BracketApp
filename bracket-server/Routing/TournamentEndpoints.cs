@@ -104,7 +104,7 @@ namespace bracket_server.Routing
                 UserID user_id = user_dal.UserIDFromToken(pick_token.Token);
                 if (user_id.IsEmpty()) return Results.Unauthorized();
                 Bracket b = tournament_dal.GetBracket(pick_token.Pick.BracketID);
-                List<PickChange> pick_changes = b.GetPickChanges(pick_token.Pick);
+                List<BracketPickChange> pick_changes = b.GetPickChanges(pick_token.Pick);
                 if(pick_changes.Count == 0) // already same
                 {
                     return EmptyValidResult();
@@ -125,7 +125,7 @@ namespace bracket_server.Routing
                 if (user_id.IsEmpty()) return Results.Unauthorized();
                 Bracket bracket = tournament_dal.GetBracket(id_token.ID);
                 // ok here is where we need to do the 'simulate' type thing
-                bracket.AutoFill(tournament_dal);
+                bracket.SmartFill(tournament_dal);
                 // here's the thing - are we considering this to be a pick thing? like are those gonna be finalized fr? probably right? 
                 // yeah they are. hm.
                 return GoodResult(bracket);

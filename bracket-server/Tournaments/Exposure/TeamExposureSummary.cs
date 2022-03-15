@@ -9,14 +9,18 @@
             Competitor = competitor;
         }
 
-        public void AddAppearancesInRound(int round, int appearances)
+        public void SetAppearancesInRound(int round, int appearances)
         { 
-            //todo: no presence in round = 0. make sure that's implemented.
-            if(_appearancesPerRound.ContainsKey(round))
-            {
-                int x = 0;
-            }
             _appearancesPerRound.Add(round, appearances);
+        }
+
+        public void IncrementAppearanceInRound(int round)
+        {
+            if (!_appearancesPerRound.ContainsKey(round))
+            {
+                _appearancesPerRound.Add(round, 0);
+            }
+            _appearancesPerRound[round]++;
         }
 
         public static TeamExposureSummary MakeEmpty()

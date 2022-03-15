@@ -1,22 +1,23 @@
 ﻿using bracket_server.Tournaments;
 using bracket_server.Tournaments.KenPom;
+using bracket_server.Tournaments.SmartFill;
 
 namespace bracket_server.Brackets
 {
     public class SmartFillArgs
     {
         public ITournamentDAL DAL { get; set; }
-        public string BracketID { get; set; }
         public SeedDataCollection SeedData { get; private set; } = new SeedDataCollection();
         public bool SavePicks { get; set; }
         public KenPomDataCollection KenPom { get; private set; } = new KenPomDataCollection();
         public int AutoWinSpread { get; private set; } = 10;
         public int MaxUnderdogRuns { get; private set; } = 2;
         public int BigUnderdogThreshold { get; private set; } = 7;
-        public SmartFillArgs(ITournamentDAL dal, string bracketID)
+
+        private bool _filled = false;
+        public SmartFillArgs(ITournamentDAL dal)
         {
             DAL = dal;
-            BracketID = bracketID;
         }
 
         public void SetSeedData(SeedDataCollection seeds)
@@ -29,22 +30,32 @@ namespace bracket_server.Brackets
             KenPom = data;
         }
 
-
-        public bool SavePickChange(PickChange change)
+        public void FillAllDbArgs(Tournament t)
         {
-            return DAL.SavePickChanges(new List<PickChange>() { change });
-        }
-        public bool SavePickChanges(List<PickChange> changes)
-        {
-            if (changes.Count == 0) return true;
-            return DAL.SavePickChanges(changes);
+            if (!_filled)
+            {
+                SetSeedData(GetSeedDataCollection(DAL, t));
+                SetKenPomData(GetKenPomCollection(DAL, t));
+            }
         }
 
-        public PickChange MakePickChange(Game game, string tournamentID)
+        protected static SeedDataCollection GetSeedDataCollection(ITournamentDAL dal, Tournament t)
         {
-            if (game.Winner == null) throw new ArgumentException("cannot have null game winner when making pick change");
-            return new PickChange(BracketID, tournamentID, game.ID, game.Winner.ID, true, true);
+            List<SeedData> seed_data = dal.GetSeedDataForTournamentType(t.TournamentType);
+            return new SeedDataCollection(seed_data);
         }
-        
+
+        protected static KenPomDataCollection GetKenPomCollection(ITournamentDAL dal, Tournament t)
+        {
+            Dictionary<string, KenPomData> data = dal.KenPomDataForTournament(t.ID);
+            return new KenPomDataCollection(data);
+        }
+
+        // hmm.
+        public virtual Pick MakePick(Game game, string tournamentID)
+        {
+            return new SmartEvalPick(tournamentID, game.ID, game.Winner.ID, game.Round);
+        }
+
     }
 }

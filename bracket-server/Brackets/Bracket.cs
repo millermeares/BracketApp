@@ -53,35 +53,25 @@ namespace bracket_server.Brackets
             return Tournament.FullyPopulated();
         }
 
-        public List<PickChange> GetPickChanges(Pick p)
+        public List<BracketPickChange> GetPickChanges(BracketPick p)
         {
             return Tournament.GetPickChanges(p);
         }
 
-        private SmartFillArgs GetSmartFillArgs(ITournamentDAL dal)
+        private BracketSmartFillArgs GetSmartFillArgs(ITournamentDAL dal)
         {
-            SmartFillArgs args = new SmartFillArgs(dal, ID);
-            args.SetSeedData(GetSeedDataCollection(dal));
-            args.SetKenPomData(GetKenPomCollection(dal));
+            BracketSmartFillArgs args = new BracketSmartFillArgs(dal, ID);
+            args.FillAllDbArgs(Tournament);
             return args;
         }
 
-        public void AutoFill(ITournamentDAL dal)
+        public void SmartFill(ITournamentDAL dal)
         {
-            SmartFillArgs smartFillArgs = GetSmartFillArgs(dal);
-            Tournament.Autofill(smartFillArgs);
+            BracketSmartFillArgs smartFillArgs = GetSmartFillArgs(dal);
+            List<Pick> changes = Tournament.Smartfill(smartFillArgs);
+            smartFillArgs.SaveAsPickChanges(changes);
         }
 
-        private SeedDataCollection GetSeedDataCollection(ITournamentDAL dal)
-        {
-            List<SeedData> seed_data = dal.GetSeedDataForTournamentType(Tournament.TournamentType);
-            return new SeedDataCollection(seed_data);
-        }
-
-        private KenPomDataCollection GetKenPomCollection(ITournamentDAL dal)
-        {
-            Dictionary<string, KenPomData> data = dal.KenPomDataForTournament(Tournament.ID);
-            return new KenPomDataCollection(data);
-        }
+       
     }
 }

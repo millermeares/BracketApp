@@ -82,6 +82,7 @@ function compareCompetitors(comp1, comp2) {
 
 function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeSetWinnerPromise }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
+    console.log(champGame);
     let handleSetWinner = (gameId, winnerId) => {
         beforeSetWinnerPromise(gameId, winnerId).then(updateUI => {
             if(!updateUI) return; // if not success, i don't want it to affect anything.
@@ -106,7 +107,8 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
                 }
                 parentGame.competitor2 = team_to_set_as_competitor;
             }
-            handleRemoveNonWinners(champGame, parentGame.gameId);
+            console.log('geting here at least :(')
+            handleRemoveNonWinners(champGame, gameId);
             setChampionshipGame({ ...champGame });
         }).catch(err => {
             console.log(err);

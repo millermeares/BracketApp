@@ -54,7 +54,7 @@ namespace bracket_server.Tournaments
             cmd.AddParameter("@champTotalPoints", 120);
         }
 
-        public static void PickParameters(this Pick pick, DbCommand cmd)
+        public static void PickParameters(this BracketPick pick, DbCommand cmd)
         {
             cmd.AddParameter("@gameID", pick.GameID);
             cmd.AddParameter("@tournamentID", pick.TournamentID);

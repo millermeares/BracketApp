@@ -208,7 +208,7 @@ namespace bracket_server.Tournaments
         DELETE FROM bracket_game_prediction WHERE (_fk_bracket, _fk_game) IN ({0});
         ";
 
-        private static string MakeInsertPickChangesString(List<PickChange> changes, DbCommand cmd)
+        private static string MakeInsertPickChangesString(List<BracketPickChange> changes, DbCommand cmd)
         {
             StringBuilder sb_val = new StringBuilder();
             for(int i = 0; i < changes.Count; i++)
@@ -232,7 +232,7 @@ namespace bracket_server.Tournaments
             return string.Format(_insertPickChangesBase, sb_val.ToString());
         }
 
-        private static string MakeDeletePickChangesString(List<PickChange> changes, DbCommand cmd)
+        private static string MakeDeletePickChangesString(List<BracketPickChange> changes, DbCommand cmd)
         {
             StringBuilder sb_val = new StringBuilder();
             for (int i = 0; i < changes.Count; i++)
@@ -250,10 +250,10 @@ namespace bracket_server.Tournaments
             return string.Format(_deletePickChangesBase, sb_val.ToString());
         }
 
-        internal static string SavePickChanges(List<PickChange> changes, DbCommand cmd)
+        internal static string SavePickChanges(List<BracketPickChange> changes, DbCommand cmd)
         {
-            List<PickChange> insert_changes = changes.Where(c => c.Add).ToList();
-            List<PickChange> delete_changes = changes.Where(c => !c.Add).ToList();
+            List<BracketPickChange> insert_changes = changes.Where(c => c.Add).ToList();
+            List<BracketPickChange> delete_changes = changes.Where(c => !c.Add).ToList();
             StringBuilder sb = new StringBuilder();
             if (delete_changes.Count > 0)
             {
@@ -341,5 +341,17 @@ namespace bracket_server.Tournaments
         {
             return string.Format(ExposureSummaryBase, CompetitorColumns, string.Empty);
         }
+
+        internal static string GetFullTournament =
+            @"
+        SELECT tournamentID, name, t.createdTime, creator, t._fk_type AS tournamentType, tournamentFinalized,
+	        g._fk_division AS gameDivision, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame, g._fk_competitor_Winner,
+	        c._fk_seed, c.competitorName, c.competitorID, c._fk_division AS competitorDivision
+        FROM tournament t
+        JOIN tournament_game g ON g._fk_tournament=t.tournamentID
+        LEFT OUTER JOIN game_participant p ON p._fk_game=g.gameID
+        LEFT OUTER JOIN competitor_tournament c ON c.competitorID=p._fk_competitor AND t.tournamentID=c._fk_tournament
+        WHERE t.tournamentID=@tournamentID
+        ORDER BY g._fk_tournamentRound, gameDivision, g.gameID;";
     }
 }

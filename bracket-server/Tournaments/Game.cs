@@ -200,6 +200,19 @@ namespace bracket_server.Tournaments
             return false;
         }
 
+        internal void ClearCompetitorsFromNonBaseGames()
+        {
+            Winner = null;
+            if(LeftGame == null || RightGame == null)
+            {
+                return;
+            }
+            Competitor1 = null;
+            Competitor2 = null;
+            LeftGame.ClearCompetitorsFromNonBaseGames();
+            RightGame.ClearCompetitorsFromNonBaseGames();
+        }
+
         
 
 

@@ -31,7 +31,7 @@ namespace bracket_server.Tournaments
 
         public bool FinishBracket(Bracket bracket);
 
-        public bool SavePickChanges(List<PickChange> pick_changes);
+        public bool SavePickChanges(List<BracketPickChange> pick_changes);
 
         public List<BracketSummary> BracketSummariesForUser(UserID userID);
 
@@ -44,6 +44,7 @@ namespace bracket_server.Tournaments
         public ExposureReport ExposureReportTournament(string tournamentID);
 
         public List<Round> GetRoundsForTournament(string tournamentID);
+        public Tournament FullActiveTournament();
 
 
     }

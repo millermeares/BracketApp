@@ -1,5 +1,7 @@
 ﻿using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
+using bracket_server.Tournaments.Exposure;
+using bracket_server.Tournaments.SmartFill;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.UserModels;
 
@@ -145,6 +147,23 @@ namespace bracket_server.Routing
                 return ResultFromException(user_dal.GetDataAccess(), ex);
             };
         }
+        public static IResult TestSmartFill(AuthToken token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = ConfirmAuth(token, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                Tournament t = tournament_dal.FullActiveTournament();
+                SmartFillEvaluation evaluation = new SmartFillEvaluation(t);
+                ExposureReport report = evaluation.DoSimulations(1000, tournament_dal);
+                return GoodResult(report.ReportByRound(tournament_dal));
+
+            }
+            catch(Exception ex) 
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
 
         private static UserID ConfirmAuth(AuthToken token, IUserDAL dal)
         {
@@ -161,6 +180,7 @@ namespace bracket_server.Routing
             AddPost("/saveseeddata", SaveSeedData);
             AddPost("/finalizetournament", FinalizeTournament);
             AddPost("/savekenpom", SaveKenPomData);
+            AddPost("/testsmartfill", TestSmartFill);
         }
     }
 }
