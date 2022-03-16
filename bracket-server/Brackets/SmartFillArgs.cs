@@ -66,13 +66,13 @@ namespace bracket_server.Brackets
 
         public bool TeamAllowedToWin(TournamentCompetitor competitor, int round)
         {
-            if (round < 4) return true;
+            if (round < 3) return true;
             SeedData data = SeedData.GetSeedData(competitor.Seed);
-            if (round == 4)
+            if (round == 3) // subtracting one because this is "win in X round", and the seed data is "% changes to get to X round". 
             {
                 return data.EliteEightOdds > MinimumThresholdForPreviousOccurrences;
             }
-            if(round == 5)
+            if(round == 4) 
             {
                 return data.FinalFourOdds > MinimumThresholdForPreviousOccurrences;
             }

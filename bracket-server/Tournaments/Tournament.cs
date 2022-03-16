@@ -289,15 +289,13 @@ namespace bracket_server.Tournaments
 
         protected Pick SmartPickWinner(Game game, SmartFillArgs args)
         {
-            // if one of the events has never happened before, return team 1, etc. 
-            Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
-            double team_1_win_percentage = func(game, args);
-            
-            if(GameHasCompetitorIsSpecificTeamAndRound(game))
+            if (GameHasCompetitorIsSpecificTeamAndRound(game))
             {
                 int x = 2;
             }
-            
+            // if one of the events has never happened before, return team 1, etc. 
+            Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
+            double team_1_win_percentage = func(game, args);
             game.Winner = WinnerFromTeamOneWinChance(team_1_win_percentage, game.Competitor1, game.Competitor2, args);
             return args.MakePick(game, ID);
         }
@@ -375,8 +373,8 @@ namespace bracket_server.Tournaments
                 }
                 else
                 {
-                    team_1_allowed_to_win = game.Competitor1.Seed > game.Competitor2.Seed;
-                    team_2_allowed_to_win = game.Competitor2.Seed > game.Competitor1.Seed;
+                    team_1_allowed_to_win = game.Competitor1.Seed < game.Competitor2.Seed;
+                    team_2_allowed_to_win = game.Competitor2.Seed < game.Competitor1.Seed;
                 }
 
             }
@@ -396,8 +394,7 @@ namespace bracket_server.Tournaments
             }
             return team_1_allowed_to_win ? 1 : 0;
         }
-
-        
+        //issue to solve: this could reduce the amount of underdog teams. maybe that's fine. maybe not.
 
         protected double SmartPickWinnerForUnderdogWinTeam(Game game, SmartFillArgs args)
         {
