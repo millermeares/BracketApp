@@ -293,8 +293,23 @@ namespace bracket_server.Tournaments
             Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
             double team_1_win_percentage = func(game, args);
             
+            if(GameHasCompetitorIsSpecificTeamAndRound(game))
+            {
+                int x = 2;
+            }
+            
             game.Winner = WinnerFromTeamOneWinChance(team_1_win_percentage, game.Competitor1, game.Competitor2, args);
             return args.MakePick(game, ID);
+        }
+
+        private bool GameHasCompetitorIsSpecificTeamAndRound(Game game)
+        {
+            return CompetitorIsSpecificTeamAndRound(game.Competitor1, game.Round) || CompetitorIsSpecificTeamAndRound(game.Competitor2, game.Round);
+        }
+
+        private bool CompetitorIsSpecificTeamAndRound(TournamentCompetitor comp, int round)
+        {
+            return comp.Name == "Colgate" && round > 3;
         }
 
 
@@ -352,11 +367,33 @@ namespace bracket_server.Tournaments
             if(!team_1_allowed_to_win && !team_2_allowed_to_win)
             {
                 // if both not allowed to win, let the team with the higher seed win.
-                team_1_allowed_to_win = game.Competitor1.Seed > game.Competitor2.Seed;
-                team_2_allowed_to_win = game.Competitor2.Seed > game.Competitor1.Seed;
+                if(game.Competitor1.Seed == game.Competitor2.Seed) // in this extremely rare case, just randomize.
+                {
+                    double winner = Random.Shared.NextDouble();
+                    team_1_allowed_to_win = winner > 0.5;
+                    team_2_allowed_to_win = winner <= 0.5;
+                }
+                else
+                {
+                    team_1_allowed_to_win = game.Competitor1.Seed > game.Competitor2.Seed;
+                    team_2_allowed_to_win = game.Competitor2.Seed > game.Competitor1.Seed;
+                }
+
             }
 
-            if (team_1_allowed_to_win && team_2_allowed_to_win) throw new Exception("at this point, at least one team needs to be allowed to win.");
+            if (!team_1_allowed_to_win)
+            {
+                System.Diagnostics.Debug.WriteLine($"Preventing {game.Competitor1.Name} from winning in round {game.Round}");
+            }
+            if (!team_2_allowed_to_win)
+            {
+                System.Diagnostics.Debug.WriteLine($"Preventing {game.Competitor2.Name} from winning in round {game.Round}");
+            }
+
+            if (team_1_allowed_to_win == team_2_allowed_to_win)
+            {
+                throw new Exception("at this point, at least one team needs to be allowed to win.");
+            }
             return team_1_allowed_to_win ? 1 : 0;
         }
 
