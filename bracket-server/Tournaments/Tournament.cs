@@ -289,6 +289,7 @@ namespace bracket_server.Tournaments
 
         protected Pick SmartPickWinner(Game game, SmartFillArgs args)
         {
+            // if one of the events has never happened before, return team 1, etc. 
             Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
             double team_1_win_percentage = func(game, args);
             
@@ -329,6 +330,10 @@ namespace bracket_server.Tournaments
 
         protected Func<Game, SmartFillArgs, double> GetSmartFillFunction(Game game, SmartFillArgs args, bool consider_underdog = true)
         {
+            if(args.OneOfTeamsNotAllowedToWin(game))
+            {
+                return ForceWinnerForTeamAllowedToWin;
+            }
             if (consider_underdog && OneOfTeamsHasUnderdogWin(game) && game.Round < 5)
             {
                 return SmartPickWinnerForUnderdogWinTeam;
@@ -339,6 +344,23 @@ namespace bracket_server.Tournaments
             }
             return SmartPickWinnerFromSeedData;
         }
+
+        protected double ForceWinnerForTeamAllowedToWin(Game game, SmartFillArgs args)
+        {
+            bool team_1_allowed_to_win = args.TeamAllowedToWin(game.Competitor1, game.Round);
+            bool team_2_allowed_to_win = args.TeamAllowedToWin(game.Competitor2, game.Round);
+            if(!team_1_allowed_to_win && !team_2_allowed_to_win)
+            {
+                // if both not allowed to win, let the team with the higher seed win.
+                team_1_allowed_to_win = game.Competitor1.Seed > game.Competitor2.Seed;
+                team_2_allowed_to_win = game.Competitor2.Seed > game.Competitor1.Seed;
+            }
+
+            if (team_1_allowed_to_win && team_2_allowed_to_win) throw new Exception("at this point, at least one team needs to be allowed to win.");
+            return team_1_allowed_to_win ? 1 : 0;
+        }
+
+        
 
         protected double SmartPickWinnerForUnderdogWinTeam(Game game, SmartFillArgs args)
         {

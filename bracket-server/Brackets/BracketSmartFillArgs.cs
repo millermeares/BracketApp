@@ -19,10 +19,6 @@ namespace bracket_server.Brackets
             return DAL.SavePickChanges(changes.Select(p => (BracketPickChange)p).ToList());
         }
 
-        private BracketPickChange MakePickChange(Pick p)
-        {
-            return new BracketPickChange(BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, true);
-        }
         public override Pick MakePick(Game game, string tournamentID)
         {
             if (game.Winner == null) throw new ArgumentException("cannot have null game winner when making pick change");

@@ -13,6 +13,7 @@ namespace bracket_server.Brackets
         public int AutoWinSpread { get; private set; } = 10;
         public int MaxUnderdogRuns { get; private set; } = 2;
         public int BigUnderdogThreshold { get; private set; } = 7;
+        private double MinimumThresholdForPreviousOccurrences = 1.5;
 
         private bool _filled = false;
         public SmartFillArgs(ITournamentDAL dal)
@@ -57,5 +58,25 @@ namespace bracket_server.Brackets
             return new SmartEvalPick(tournamentID, game.ID, game.Winner.ID, game.Round);
         }
 
+        public bool OneOfTeamsNotAllowedToWin(Game game)
+        {
+            return !TeamAllowedToWin(game.Competitor1, game.Round) || !TeamAllowedToWin(game.Competitor2, game.Round);
+
+        }
+
+        public bool TeamAllowedToWin(TournamentCompetitor competitor, int round)
+        {
+            if (round < 4) return true;
+            SeedData data = SeedData.GetSeedData(competitor.Seed);
+            if (round == 4)
+            {
+                return data.EliteEightOdds > MinimumThresholdForPreviousOccurrences;
+            }
+            if(round == 5)
+            {
+                return data.FinalFourOdds > MinimumThresholdForPreviousOccurrences;
+            }
+            return true;
+        }
     }
 }
