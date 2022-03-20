@@ -18,8 +18,3 @@ after this, is should work.
 ALSO! The server is running on a different port because the server and client are technically separate entities. This is fixed by add a "proxy" value in bracket-client/package.json. 
 Just do: 
 "proxy": {server-path}
-
-
-
-KNOWN ISSUES: 
--404s on refresh in production
