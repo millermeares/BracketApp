@@ -508,7 +508,8 @@ namespace bracket_server.Tournaments
             string competitorName = GetString(reader, "champName");
             int currentPoints = GetInt(reader, "pointsEarned");
             int maxPoints = GetInt(reader, "bracketMax");
-            return new BracketSummary(bracketID, tournamentName, completionTime, creationTime, competitorName, maxPoints, currentPoints);
+            string tournamentID = GetString(reader, "tournamentID");
+            return new BracketSummary(bracketID, tournamentName, tournamentID, completionTime, creationTime, competitorName, maxPoints, currentPoints);
         }
 
         public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID)

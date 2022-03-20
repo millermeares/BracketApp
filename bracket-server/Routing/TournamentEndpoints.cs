@@ -145,7 +145,9 @@ namespace bracket_server.Routing
                 UserID user_id = user_dal.UserIDFromToken(token);
                 if (user_id.IsEmpty()) return Results.Unauthorized();
                 List<BracketSummary> summaries = tournament_dal.BracketSummariesForUser(user_id);
-                return GoodResult(summaries);
+                string active_tournament_id = tournament_dal.GetActiveBracketingTournamentID();
+                // filtering here instead of dal to avoid choice being too committal.
+                return GoodResult(summaries.Where(s => s.TournamentID == active_tournament_id)); 
             }
             catch(Exception ex)
             {

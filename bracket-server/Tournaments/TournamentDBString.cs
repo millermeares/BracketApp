@@ -269,7 +269,7 @@ namespace bracket_server.Tournaments
 
         internal static string GetBracketSummaryForUser =
             @"
-        SELECT bracketID, creationTime, completionTime, tournamentName, pointsEarned, trueMax, potentialLost, 
+        SELECT bracketID, creationTime, completionTime, tournamentName, pointsEarned, trueMax, potentialLost, tournamentID,
         maxRound, trueMax-potentialLost AS bracketMax, c.competitorName AS champName FROM 
         (
         SELECT b.bracketID, b.creationTime, b.completionTime, t.tournamentID, t.name AS tournamentName, 
