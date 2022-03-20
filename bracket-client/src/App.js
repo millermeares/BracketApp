@@ -17,7 +17,7 @@ import CompletedBracket from './Components/Brackets/CompletedBrackets/CompletedB
 import UserExposureReport from './Components/Brackets/Exposure/UserExposureReport';
 function App() {
 
-  let default_element = <FillOutBracket />
+  let default_element = <UserCompletedBracketsTable />
   return (
     <div className="App">
       <AuthProvider>

@@ -33,6 +33,9 @@ function UserCompletedBracketsTable() {
 
     function makeBracketComponents() {
         let components = [];
+        brackets.sort((a, b) => {
+            return b.bracketMax - a.bracketMax;
+        });
         for (let i = 0; i < brackets.length; i++) {
             let props = { ...brackets[i], onViewBracketClick: onViewBracketClick, key:uuid() }
             components.push(

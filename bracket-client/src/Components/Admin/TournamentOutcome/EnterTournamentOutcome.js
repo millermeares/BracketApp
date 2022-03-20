@@ -8,9 +8,6 @@ let modifyTournamentObjectForAdmin = (tournament) => {
 
 let setPredictionsEqualToReality = (game) => {
     if(!game) return;
-    if(game.id == "859e0f2b-bc59-41e6-af48-408b1565c8c0") {
-        console.log(game);
-    }
     if(!game.predictedCompetitor1) {
         game.predictedCompetitor1 = game.competitor1;
     }
@@ -22,9 +19,6 @@ let setPredictionsEqualToReality = (game) => {
     }
     setPredictionsEqualToReality(game.rightGame)
     setPredictionsEqualToReality(game.leftGame);
-    if(game.id == "859e0f2b-bc59-41e6-af48-408b1565c8c0") {
-        console.log(game);
-    }
 }
 
 function EnterTournamentOutcome({tournamentid}) {

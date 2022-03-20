@@ -86,14 +86,11 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
     const [champGame, setChampionshipGame] = useState(championshipGame)
     let handleSetWinner = (gameId, winnerId) => {
         beforeSetWinnerPromise(gameId, winnerId).then(updateUI => {
-            console.log(updateUI);
             if(!updateUI) return; // if not success, i don't want it to affect anything.
             let parentGame = getParentGame(champGame, gameId);
             let winner_is_top = parentGame.leftGame.id == gameId;
             if (winner_is_top) {
                 let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.leftGame, winnerId);
-                console.log(team_to_set_as_competitor);
-                console.log(parentGame.leftGame);
                 if (compareCompetitors(team_to_set_as_competitor, parentGame.predictedCompetitor1)) {
                     return;
                 }
