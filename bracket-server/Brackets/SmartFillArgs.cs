@@ -55,13 +55,12 @@ namespace bracket_server.Brackets
         // hmm.
         public virtual Pick MakePick(Game game, string tournamentID)
         {
-            return new SmartEvalPick(tournamentID, game.ID, game.Winner.ID, game.Round);
+            return new SmartEvalPick(tournamentID, game.ID, game.PredictedWinner.ID, game.Round);
         }
 
         public bool OneOfTeamsNotAllowedToWin(Game game)
         {
-            return !TeamAllowedToWin(game.Competitor1, game.Round) || !TeamAllowedToWin(game.Competitor2, game.Round);
-
+            return !TeamAllowedToWin(game.PredictedCompetitor1, game.Round) || !TeamAllowedToWin(game.PredictedCompetitor2, game.Round);
         }
 
         public bool TeamAllowedToWin(TournamentCompetitor competitor, int round)

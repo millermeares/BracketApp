@@ -1,9 +1,11 @@
-﻿using System;
+﻿using MillerAPI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UserManagement.Roles;
+using UserManagement.UserDataAccess;
 
 namespace UserManagement.UserModels
 {
@@ -37,6 +39,13 @@ namespace UserManagement.UserModels
         public bool IsEmpty()
         {
             return ID.IsEmpty();
+        }
+
+        public MenuOptions GetMenuOptions(IUserDAL user_dal)
+        {
+            MenuOptions menuOptions = new MenuOptions();
+            Roles.ForEach(r => menuOptions.Add(new MenuOption("/" + r.Name, r.Name)));
+            return menuOptions; 
         }
 
     }

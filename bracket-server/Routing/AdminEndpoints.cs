@@ -165,6 +165,34 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult GetActiveTournament(ITournamentDAL dal)
+        {
+            try 
+            {
+                Tournament t = dal.FullActiveTournament();
+                return GoodResult(t);
+            }
+            catch(Exception ex)
+            {
+                return ResultFromException(dal.GetDataAccess(), ex);
+            }
+        }
+
+        public static IResult SaveGameOutcome(OutcomeAuthToken outcome_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = ConfirmAuth(outcome_token.Token, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                bool success = tournament_dal.SaveOutcome(outcome_token.Outcome);
+                return ResultFromBool(success, "failed to save");
+            }
+            catch(Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
         private static UserID ConfirmAuth(AuthToken token, IUserDAL dal)
         {
             return ConfirmDesiredAuth(token, dal, "admin");
@@ -181,6 +209,8 @@ namespace bracket_server.Routing
             AddPost("/finalizetournament", FinalizeTournament);
             AddPost("/savekenpom", SaveKenPomData);
             AddPost("/testsmartfill", TestSmartFill);
+            AddGet("/activetournament", GetActiveTournament);
+            AddPost("/savegameoutcome", SaveGameOutcome);
         }
     }
 }

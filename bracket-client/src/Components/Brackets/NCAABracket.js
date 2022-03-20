@@ -56,19 +56,21 @@ function getParentGame(parentGame, id) {
 
 
 function getTeamInGameMatchingId(game, id) {
-    if (game.competitor1 != null && game.competitor1.id == id) return game.competitor1;
-    if (game.competitor2 != null && game.competitor2.id == id) return game.competitor2;
+    if (game.predictedCompetitor1 != null && game.predictedCompetitor1.id == id) return game.predictedCompetitor1;
+    if (game.predictedCompetitor2 != null && game.predictedCompetitor2.id == id) return game.predictedCompetitor2;
     return null;
 }
 
 function handleRemoveNonWinners(champGame, gameId) {
     let parentGame = getParentGame(champGame, gameId);
     if (!parentGame) return;
-    if (!compareCompetitors(parentGame.competitor1,parentGame.leftGame.competitor1) && !compareCompetitors(parentGame.competitor1, parentGame.leftGame.competitor2)) {
-        parentGame.competitor1 = null;
+    if (!compareCompetitors(parentGame.predictedCompetitor1,parentGame.leftGame.predictedCompetitor1) && 
+            !compareCompetitors(parentGame.predictedCompetitor1, parentGame.leftGame.predictedCompetitor2)) {
+        parentGame.predictedCompetitor1 = null;
     }
-    if (!compareCompetitors(parentGame.competitor2,parentGame.rightGame.competitor1) && !compareCompetitors(parentGame.competitor2, parentGame.rightGame.competitor2)) {
-        parentGame.competitor2 = null;
+    if (!compareCompetitors(parentGame.predictedCompetitor2,parentGame.rightGame.predictedCompetitor1) && 
+        !compareCompetitors(parentGame.predictedCompetitor2, parentGame.rightGame.predictedCompetitor2)) {
+        parentGame.predictedCompetitor2 = null;
     }
     handleRemoveNonWinners(champGame, parentGame.id);
 }
@@ -82,32 +84,33 @@ function compareCompetitors(comp1, comp2) {
 
 function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeSetWinnerPromise }) {
     const [champGame, setChampionshipGame] = useState(championshipGame)
-    console.log(champGame);
     let handleSetWinner = (gameId, winnerId) => {
         beforeSetWinnerPromise(gameId, winnerId).then(updateUI => {
+            console.log(updateUI);
             if(!updateUI) return; // if not success, i don't want it to affect anything.
             let parentGame = getParentGame(champGame, gameId);
             let winner_is_top = parentGame.leftGame.id == gameId;
             if (winner_is_top) {
                 let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.leftGame, winnerId);
-                if (compareCompetitors(team_to_set_as_competitor, parentGame.competitor1)) {
+                console.log(team_to_set_as_competitor);
+                console.log(parentGame.leftGame);
+                if (compareCompetitors(team_to_set_as_competitor, parentGame.predictedCompetitor1)) {
                     return;
                 }
-                if (compareCompetitors(parentGame.competitor1,champGame.winner)) {
-                    champGame.winner = null; // handle clearing winner too.
+                if (compareCompetitors(parentGame.predictedCompetitor1,champGame.predictedWinner)) {
+                    champGame.predictedWinner = null; // handle clearing winner too.
                 }
-                parentGame.competitor1 = team_to_set_as_competitor;
+                parentGame.predictedCompetitor1 = team_to_set_as_competitor;
             } else {
                 let team_to_set_as_competitor = getTeamInGameMatchingId(parentGame.rightGame, winnerId);
-                if (compareCompetitors(team_to_set_as_competitor,parentGame.competitor2)) {
+                if (compareCompetitors(team_to_set_as_competitor,parentGame.predictedCompetitor2)) {
                     return;
                 }
-                if (compareCompetitors(parentGame.competitor2, champGame.winner)) {
-                    champGame.winner = null; // handle clearing winner too.
+                if (compareCompetitors(parentGame.predictedDompetitor2, champGame.predictedWinner)) {
+                    champGame.predictedWinner = null; // handle clearing winner too.
                 }
-                parentGame.competitor2 = team_to_set_as_competitor;
+                parentGame.predictedCompetitor2 = team_to_set_as_competitor;
             }
-            console.log('geting here at least :(')
             handleRemoveNonWinners(champGame, gameId);
             setChampionshipGame({ ...champGame });
         }).catch(err => {
@@ -123,7 +126,7 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
             if(!success){
                 return;
             }
-            champGame.winner = getTeamInGameMatchingId(champGame, winnerId);
+            champGame.predictedWinner = getTeamInGameMatchingId(champGame, winnerId);
         setChampionshipGame({...champGame});
         }).catch(err => {
             sending_champ_request = false;
@@ -209,9 +212,9 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
                 {makeRoundComponents(firstHalf(semi_finals_games), true, true, true)}
             </ul>
 
-            {makeFinalist1(champGame.competitor1)}
-            {makeWinner(champGame.winner)}
-            {makeFinalist2(champGame.competitor2)}
+            {makeFinalist1(champGame.predictedCompetitor1)}
+            {makeWinner(champGame.predictedWinner)}
+            {makeFinalist2(champGame.predictedCompetitor2)}
 
             <ul className='round round-4'>
                 {makeRoundComponents(secondHalf(semi_finals_games), false, true, true)}

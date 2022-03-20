@@ -21,8 +21,8 @@ namespace bracket_server.Brackets
 
         public override Pick MakePick(Game game, string tournamentID)
         {
-            if (game.Winner == null) throw new ArgumentException("cannot have null game winner when making pick change");
-            return new BracketPickChange(BracketID, tournamentID, game.ID, game.Winner.ID, true, true);
+            if (game.PredictedWinner == null) throw new ArgumentException("cannot have null game winner when making pick change");
+            return new BracketPickChange(BracketID, tournamentID, game.ID, game.PredictedWinner.ID, true, true);
         }
 
 

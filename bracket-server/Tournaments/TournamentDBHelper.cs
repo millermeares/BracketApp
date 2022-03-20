@@ -54,12 +54,17 @@ namespace bracket_server.Tournaments
             cmd.AddParameter("@champTotalPoints", 120);
         }
 
-        public static void PickParameters(this BracketPick pick, DbCommand cmd)
+        public static void PickParameters(this Pick pick, DbCommand cmd)
         {
             cmd.AddParameter("@gameID", pick.GameID);
-            cmd.AddParameter("@tournamentID", pick.TournamentID);
-            cmd.AddParameter("@bracketID", pick.BracketID);
             cmd.AddParameter("@competitorID", pick.CompetitorID);
+            cmd.AddParameter("@tournamentID", pick.TournamentID);
+        }
+
+        public static void BracketPickParameters(this BracketPick pick, DbCommand cmd)
+        {
+            pick.PickParameters(cmd);
+            cmd.AddParameter("@bracketID", pick.BracketID);
         }
 
         public static void KenPomParameter(this KenPomDataReference data, DbCommand cmd)

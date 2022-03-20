@@ -317,16 +317,20 @@ namespace bracket_server.Tournaments
                 return GameCompetitorFromReader(reader);
             };
             string winner_id = GetString(reader, "_fk_competitor_Winner");
+            
             Game? left_game = string.IsNullOrEmpty(leftGameID) ? null : gameDict[leftGameID];
             Game? right_game = string.IsNullOrEmpty(rightGameID) ? null : gameDict[rightGameID];
             TournamentCompetitor? competitor_2 = getTournamentCompetitor2();
+            competitor_1 = GetCompetitorFromGameWinnerIfNull(competitor_1, left_game);
+            competitor_2 = GetCompetitorFromGameWinnerIfNull(competitor_2, right_game);
             Game game = new Game()
             {
                 ID = gameID,
-                Competitor1 = competitor_1,
-                Competitor2 = competitor_2,
+                
                 LeftGame = left_game,
                 RightGame = right_game,
+                Competitor1 = competitor_1,
+                Competitor2 = competitor_2,
                 Division = gameDivision,
                 Round = round,
                 Winner = GetWinner(winner_id, competitor_1, competitor_2)
@@ -335,14 +339,21 @@ namespace bracket_server.Tournaments
             return game;
         }
 
-        private static TournamentCompetitor? GetWinner(string winner_id, TournamentCompetitor? comp1,TournamentCompetitor? comp2)
+        private TournamentCompetitor? GetCompetitorFromGameWinnerIfNull(TournamentCompetitor? competitor, Game? origin_game)
+        {
+            if (competitor != null) return competitor;
+            if (origin_game == null) return null; // i don't think this should happen.
+            return origin_game.Winner;
+        }
+
+        private static TournamentCompetitor? GetWinner(string winner_id, TournamentCompetitor? comp1, TournamentCompetitor? comp2)
         {
             if (string.IsNullOrEmpty(winner_id)) return null;
-            if(comp1 == null || comp2 == null)
+            if(comp1 == null && comp2 == null)
             {
-                throw new ArgumentException("competitors null when winner is not");
+                throw new ArgumentException("both null when winner is not");
             }
-            return comp1.ID == winner_id ? comp1 : comp2;
+            return comp1 != null && comp1.ID == winner_id ? comp1 : comp2;
         }
 
         private TournamentCompetitor? GameCompetitorFromReader(DbDataReader reader)
@@ -494,8 +505,10 @@ namespace bracket_server.Tournaments
             DateTime creationTime = GetDatetime(reader, "creationTime");
             DateTime completionTime = GetDatetime(reader, "completionTime");
             string tournamentName = GetString(reader, "tournamentName");
-            string competitorName = GetString(reader, "competitorName");
-            return new BracketSummary(bracketID, tournamentName, completionTime, creationTime, competitorName);
+            string competitorName = GetString(reader, "champName");
+            int currentPoints = GetInt(reader, "pointsEarned");
+            int maxPoints = GetInt(reader, "bracketMax");
+            return new BracketSummary(bracketID, tournamentName, completionTime, creationTime, competitorName, maxPoints, currentPoints);
         }
 
         public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID)
@@ -640,6 +653,55 @@ namespace bracket_server.Tournaments
             string name = GetString(reader, "name");
             return new Round(round, name);
         }
+
+        
+
+        public TournamentCompetitor? OtherCompetitorInGame(Pick p)
+        {
+            List<TournamentCompetitor> competitors = CompetitorsInGame(p.GameID);
+            if(!competitors.Any(c => c.ID != p.CompetitorID))
+            {
+                return null;
+            }
+            return competitors.Find(c => c.ID != p.CompetitorID);
+        }
+
+        public List<TournamentCompetitor> CompetitorsInGame(string gameID)
+        {
+            List<TournamentCompetitor> competitors = new List<TournamentCompetitor>();
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.CompetitorsInGame(), conn);
+                cmd.AddParameter("@gameID", gameID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return ListFromReader(reader, TournamentCompetitorFromReader);
+            });
+        }
+
+        public bool SaveOutcome(Pick p)
+        {
+            TournamentCompetitor? other_competitor = OtherCompetitorInGame(p);
+            int round_of_game = RoundOfGame(p.GameID);
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.SaveGameOutcome, conn);
+                p.PickParameters(cmd);
+                cmd.AddParameter("@otherCompetitorID", other_competitor == null ? null : other_competitor.ID);
+                cmd.AddParameter("@roundOfGame", round_of_game);
+                cmd.ExecuteNonQuery();
+                return true;
+            });
+        }
+
+        public int RoundOfGame(string gameID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.RoundOfGame, conn);
+                cmd.AddParameter("@gameID", gameID);
+                return ScalarIntFromCommand(cmd);
+            });
+        } 
 
     }
 }

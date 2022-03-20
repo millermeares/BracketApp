@@ -48,6 +48,8 @@ function UserCompletedBracketsTable() {
                 <tr>
                     <th>Tournament</th>
                     <th>Winner</th>
+                    <th>Points Earned</th>
+                    <th>Max Points</th>
                     <th>Completion Date</th>
                     <th>View</th>
                 </tr>

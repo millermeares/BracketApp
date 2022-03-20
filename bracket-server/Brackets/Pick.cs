@@ -11,5 +11,9 @@
             GameID = gameID;
             CompetitorID = competitorID;
         }
+        public static Pick MakeEmpty()
+        {
+            return new Pick("", "", "");
+        }
     }
 }

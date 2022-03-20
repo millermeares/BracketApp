@@ -1,4 +1,5 @@
-﻿using MillerAPI;
+﻿using bracket_server.Tournaments;
+using MillerAPI;
 using MillerAPI.DataAccess;
 using UserManagement;
 using UserManagement.Authentication;
@@ -76,6 +77,22 @@ namespace bracket_server.Routing
             }
         }
 
+        public static IResult MenuOptionsForUser(AuthToken token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                AuthenticatedUser user = user_dal.AuthenticatedUserFromToken(token);
+                if (user.IsEmpty()) return Results.Unauthorized();
+                MenuOptions options = BracketUsers.UserMethods.GetMenuOptionsForTournamentUser(tournament_dal);
+                options.AddRange(user.GetMenuOptions(user_dal));
+                return GoodResult(options);
+            }
+            catch (Exception ex)
+            {
+                return ResultFromException(user_dal, ex);
+            }
+        }
+
         public static IResult ResultFromException(IUserDAL dal, Exception ex)
         {
             return ResultFromException(dal.GetDataAccess(), ex);
@@ -86,6 +103,7 @@ namespace bracket_server.Routing
             AddPost("/signup", SignUp);
             AddPost("/login", Login);
             AddPost("/logout", Logout);
+            AddPost("/usermenuoptions", MenuOptionsForUser);
         }
     }
 }

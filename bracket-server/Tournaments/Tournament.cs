@@ -33,8 +33,26 @@ namespace bracket_server.Tournaments
             ChampionshipGame = game;
             _gameDictionary.Add(game.ID, game);
             AddCompetitorsToDictIfThere(game);
-
+            // if left game or right game is not null, set setcompetitor from the winner of those games.
+            SetCompetitorsFromChildWinners(game);
         }
+
+        private void SetCompetitorsFromChildWinners(Game game)
+        {
+            if (!game.HasChildGames() || game.HasCompetitors()) return;
+            Game left_game = _gameDictionary[game.LeftGame.ID];
+            if(!game.HasCompetitor1() && left_game.HasWinner())
+            {
+                game.Competitor1 = left_game.Winner;
+            }
+            Game right_game = _gameDictionary[game.RightGame.ID];
+            if(!game.HasCompetitor2() && right_game.HasWinner())
+            {
+                game.Competitor2 = right_game.Winner;
+            }
+        }
+
+        
 
         private void AddCompetitorsToDictIfThere(Game game)
         {
@@ -63,35 +81,32 @@ namespace bracket_server.Tournaments
         {
             if(p.GameID == ChampionshipGame.ID)
             {
-                ChampionshipGame.Winner = _competitorDictionary[p.CompetitorID];
+                ChampionshipGame.PredictedWinner = _competitorDictionary[p.CompetitorID];
                 return;
             }
             Game? parent_game = ChampionshipGame.FindParentGame(p.GameID);
             if(parent_game == null) throw new Exception($"could not find parent game for {p.GameID}.");
             Game? game = parent_game.GetImmediateChildGame(p.GameID);
             if (game == null) throw new Exception("could not find game in immediate children but it should really be there.");
-            SetGameWinnerFromDict(game, p);
+            SetGamePredictedWinnerFromDict(game, p);
             if(parent_game.IsLeft(p.GameID))
             {
-                parent_game.Competitor1 = _competitorDictionary[p.CompetitorID];
+                parent_game.PredictedCompetitor1 = _competitorDictionary[p.CompetitorID];
             } else
             {
                 // right
-                parent_game.Competitor2 = _competitorDictionary[p.CompetitorID];
+                parent_game.PredictedCompetitor2= _competitorDictionary[p.CompetitorID];
             }
         }
 
-        private void SetGameWinnerFromDict(Game game, BracketPick p)
+        private void SetGamePredictedWinnerFromDict(Game game, BracketPick p)
         {
-            game.Winner = _competitorDictionary[p.CompetitorID];
+            game.PredictedWinner = _competitorDictionary[p.CompetitorID];
         }
 
         public void ApplyPicks(List<BracketPick> picks)
         {
-            foreach(BracketPick p in picks)
-            {
-                ApplyPick(p);
-            }
+            picks.ForEach(pick => ApplyPick(pick));
         }
 
         internal static Game ChampionshipSkeletonFromBase(List<Game> base_games)
@@ -169,21 +184,22 @@ namespace bracket_server.Tournaments
 
         public bool FullyPopulated()
         {
-            if (ChampionshipGame.Winner == null) return false;
+            if (ChampionshipGame.PredictedWinner == null) return false;
             return ChampionshipGame.FullyPopulated();
         }
 
         private List<BracketPickChange> PickChangesChampGame(BracketPick p)
         {
             List<BracketPickChange> changes = new List<BracketPickChange>();
-            if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID == p.CompetitorID)
+            if(ChampionshipGame.PredictedWinner != null && ChampionshipGame.PredictedWinner.ID == p.CompetitorID)
             {
                 return changes; // winner already this.
             }
             changes.Add(new BracketPickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
-            if(ChampionshipGame.Winner != null && ChampionshipGame.Winner.ID != p.GameID)
+            if(ChampionshipGame.PredictedWinner != null && ChampionshipGame.PredictedWinner.ID != p.CompetitorID)
+            //technically found a bug fix that could have been making things not break.
             {
-                changes.Add(new BracketPickChange(p.BracketID, p.TournamentID, p.GameID, ChampionshipGame.Winner.ID, false, false));
+                changes.Add(new BracketPickChange(p.BracketID, p.TournamentID, p.GameID, ChampionshipGame.PredictedWinner.ID, false, false));
             }
             return changes;
         }
@@ -203,20 +219,20 @@ namespace bracket_server.Tournaments
             TournamentCompetitor winner = _competitorDictionary[p.CompetitorID];
             if(parent_game.IsLeft(p.GameID))
             {
-                bool had_different_winner = parent_game.Competitor1 != null && parent_game.Competitor1 != winner;
+                bool had_different_winner = parent_game.PredictedCompetitor1 != null && parent_game.PredictedCompetitor1 != winner;
                 if(had_different_winner)
                 {
-                    pick_changes.AddRange(RemoveFromTree(outcome_game, parent_game.Competitor1, p.BracketID));
+                    pick_changes.AddRange(RemovePredictionsFromTree(outcome_game, parent_game.PredictedCompetitor1, p.BracketID));
                 }
             } else
             {
-                bool had_different_winner = parent_game.Competitor2 != null && parent_game.Competitor2 != winner;
+                bool had_different_winner = parent_game.PredictedCompetitor2 != null && parent_game.PredictedCompetitor2 != winner;
                 if (had_different_winner)
                 {
-                    pick_changes.AddRange(RemoveFromTree(outcome_game, parent_game.Competitor2, p.BracketID));
+                    pick_changes.AddRange(RemovePredictionsFromTree(outcome_game, parent_game.PredictedCompetitor2, p.BracketID));
                 }
             }
-            bool change_necessary = !parent_game.HasCompetitor(p.CompetitorID);
+            bool change_necessary = !parent_game.HasPredictedCompetitor(p.CompetitorID);
             if (change_necessary)
             {
                 pick_changes.Add(new BracketPickChange(p.BracketID, p.TournamentID, p.GameID, p.CompetitorID, true, false));
@@ -227,16 +243,15 @@ namespace bracket_server.Tournaments
 
         // we want to remove the old winner though outcome game. 
         // if a competitor is present in the parent, that means we need to add a removal pick change for the child game. 
-        private List<BracketPickChange> RemoveFromTree(Game outcomeGame, TournamentCompetitor competitor, string bracketID)
+        private List<BracketPickChange> RemovePredictionsFromTree(Game outcomeGame, TournamentCompetitor competitor, string bracketID)
         {
             if (outcomeGame == ChampionshipGame)
             {
-                // ok.. what here? 
-                if (ChampionshipGame.Winner != competitor)
+                if (ChampionshipGame.PredictedWinner != competitor)
                 {
                     return new List<BracketPickChange>();
                 }
-                ChampionshipGame.Winner = null;
+                ChampionshipGame.PredictedWinner = null;
                 BracketPickChange champ_change = new BracketPickChange(bracketID, ID, ChampionshipGame.ID, competitor.ID, false, false);
                 return new List<BracketPickChange> { champ_change };
             }
@@ -245,10 +260,10 @@ namespace bracket_server.Tournaments
             // starting at the outcome game that changed. 
             Game? parent_game = ChampionshipGame.FindParentGame(outcomeGame.ID);
             if (parent_game == null) throw new ArgumentException();
-            if(parent_game.HasCompetitor(competitor.ID))
+            if(parent_game.HasPredictedCompetitor(competitor.ID))
             {
                 List<BracketPickChange> changes = new List<BracketPickChange>() { new BracketPickChange(bracketID, ID, outcomeGame.ID, competitor.ID, false, false) };
-                changes.AddRange(RemoveFromTree(parent_game, competitor, bracketID));
+                changes.AddRange(RemovePredictionsFromTree(parent_game, competitor, bracketID));
                 return changes;
             }
             return new List<BracketPickChange>();
@@ -257,52 +272,48 @@ namespace bracket_server.Tournaments
         public List<Pick> Smartfill(SmartFillArgs args) // this could bring in the info like SeedData dictionary, etc.
         {
             List<Pick> changes = new List<Pick>();
-            ChampionshipGame.Winner = SmartFillGamesToGetWinner(ChampionshipGame, args, ref changes);
+            ChampionshipGame.PredictedWinner = SmartFillGamesToGetPredictedWinner(ChampionshipGame, args, ref changes);
             ResetUnderdogCounters();
             return changes;
         }
 
-        protected TournamentCompetitor? SmartFillGamesToGetWinner(Game game, SmartFillArgs args, ref List<Pick> pick_changes)
+        protected TournamentCompetitor? SmartFillGamesToGetPredictedWinner(Game game, SmartFillArgs args, ref List<Pick> pick_changes)
         {
-            if (game.HasWinner()) return game.Winner;
-            if(!game.HasCompetitors())
+            if (game.HasPredictedWinner()) return game.PredictedWinner;
+            if(!game.HasPredictedCompetitors())
             {
                 bool do_comp_1_first = Random.Shared.NextDouble() > 0.5; // do this to make the order that things are fill in random.
                 // this is.. fine but we probably won't have many cinderella teams on opposite sides of the bracket. 
                 // killen says that's a good team ^^ oh
-                if(do_comp_1_first && !game.HasCompetitor1())
+                if(do_comp_1_first && !game.HasPredictedCompetitor1())
                 {
-                    game.Competitor1 = SmartFillGamesToGetWinner(game.LeftGame, args, ref pick_changes);
+                    game.PredictedCompetitor1 = SmartFillGamesToGetPredictedWinner(game.LeftGame, args, ref pick_changes);
                 }
                 if(!game.HasCompetitor2())
                 {
-                    game.Competitor2 = SmartFillGamesToGetWinner(game.RightGame, args, ref pick_changes);
+                    game.PredictedCompetitor2 = SmartFillGamesToGetPredictedWinner(game.RightGame, args, ref pick_changes);
                 }
                 if(!do_comp_1_first && !game.HasCompetitor1())
                 {
-                    game.Competitor1 = SmartFillGamesToGetWinner(game.LeftGame, args, ref pick_changes);
+                    game.PredictedCompetitor1 = SmartFillGamesToGetPredictedWinner(game.LeftGame, args, ref pick_changes);
                 }
             }
-            pick_changes.Add(SmartPickWinner(game, args));
-            return game.Winner;
+            pick_changes.Add(SmartPredictWinner(game, args));
+            return game.PredictedWinner;
         }
 
-        protected Pick SmartPickWinner(Game game, SmartFillArgs args)
+        protected Pick SmartPredictWinner(Game game, SmartFillArgs args)
         {
-            if (GameHasCompetitorIsSpecificTeamAndRound(game))
-            {
-                int x = 2;
-            }
             // if one of the events has never happened before, return team 1, etc. 
             Func<Game, SmartFillArgs, double> func = GetSmartFillFunction(game, args);
             double team_1_win_percentage = func(game, args);
-            game.Winner = WinnerFromTeamOneWinChance(team_1_win_percentage, game.Competitor1, game.Competitor2, args);
+            game.PredictedWinner = WinnerFromTeamOneWinChance(team_1_win_percentage, game.PredictedCompetitor1, game.PredictedCompetitor2, args);
             return args.MakePick(game, ID);
         }
 
         private bool GameHasCompetitorIsSpecificTeamAndRound(Game game)
         {
-            return CompetitorIsSpecificTeamAndRound(game.Competitor1, game.Round) || CompetitorIsSpecificTeamAndRound(game.Competitor2, game.Round);
+            return CompetitorIsSpecificTeamAndRound(game.PredictedCompetitor1, game.Round) || CompetitorIsSpecificTeamAndRound(game.PredictedCompetitor2, game.Round);
         }
 
         private bool CompetitorIsSpecificTeamAndRound(TournamentCompetitor comp, int round)
@@ -360,12 +371,12 @@ namespace bracket_server.Tournaments
 
         protected double ForceWinnerForTeamAllowedToWin(Game game, SmartFillArgs args)
         {
-            bool team_1_allowed_to_win = args.TeamAllowedToWin(game.Competitor1, game.Round);
-            bool team_2_allowed_to_win = args.TeamAllowedToWin(game.Competitor2, game.Round);
+            bool team_1_allowed_to_win = args.TeamAllowedToWin(game.PredictedCompetitor1, game.Round);
+            bool team_2_allowed_to_win = args.TeamAllowedToWin(game.PredictedCompetitor2, game.Round);
             if(!team_1_allowed_to_win && !team_2_allowed_to_win)
             {
                 // if both not allowed to win, let the team with the higher seed win.
-                if(game.Competitor1.Seed == game.Competitor2.Seed) // in this extremely rare case, just randomize.
+                if(game.PredictedCompetitor1.Seed == game.PredictedCompetitor2.Seed) // in this extremely rare case, just randomize.
                 {
                     double winner = Random.Shared.NextDouble();
                     team_1_allowed_to_win = winner > 0.5;
@@ -373,19 +384,9 @@ namespace bracket_server.Tournaments
                 }
                 else
                 {
-                    team_1_allowed_to_win = game.Competitor1.Seed < game.Competitor2.Seed;
-                    team_2_allowed_to_win = game.Competitor2.Seed < game.Competitor1.Seed;
+                    team_1_allowed_to_win = game.PredictedCompetitor1.Seed < game.PredictedCompetitor2.Seed;
+                    team_2_allowed_to_win = game.PredictedCompetitor2.Seed < game.PredictedCompetitor1.Seed;
                 }
-
-            }
-
-            if (!team_1_allowed_to_win)
-            {
-                System.Diagnostics.Debug.WriteLine($"Preventing {game.Competitor1.Name} from winning in round {game.Round}");
-            }
-            if (!team_2_allowed_to_win)
-            {
-                System.Diagnostics.Debug.WriteLine($"Preventing {game.Competitor2.Name} from winning in round {game.Round}");
             }
 
             if (team_1_allowed_to_win == team_2_allowed_to_win)
@@ -398,22 +399,22 @@ namespace bracket_server.Tournaments
 
         protected double SmartPickWinnerForUnderdogWinTeam(Game game, SmartFillArgs args)
         {
-            if(TeamIsUnderdogWithFreeWin(game.Competitor1) && TeamIsUnderdogWithFreeWin(game.Competitor2))
+            if(TeamIsUnderdogWithFreeWin(game.PredictedCompetitor1) && TeamIsUnderdogWithFreeWin(game.PredictedCompetitor2))
             {
                 var actual_func = GetSmartFillFunction(game, args, false);
                 return actual_func(game, args);
             }
 
-            if (TeamIsUnderdogWithFreeWin(game.Competitor1)) return 1.00;
-            if (TeamIsUnderdogWithFreeWin(game.Competitor2)) return 0.00;
+            if (TeamIsUnderdogWithFreeWin(game.PredictedCompetitor1)) return 1.00;
+            if (TeamIsUnderdogWithFreeWin(game.PredictedCompetitor2)) return 0.00;
 
-            if(TeamIsUnderdogWithBetterOdds(game.Competitor1) && TeamIsUnderdogWithBetterOdds(game.Competitor2))
+            if(TeamIsUnderdogWithBetterOdds(game.PredictedCompetitor1) && TeamIsUnderdogWithBetterOdds(game.PredictedCompetitor2))
             {
                 var actual_func = GetSmartFillFunction(game, args, false);
                 return actual_func(game, args);
             }
 
-            if(TeamIsUnderdogWithBetterOdds(game.Competitor1))
+            if(TeamIsUnderdogWithBetterOdds(game.PredictedCompetitor1))
             {
                 var actual_func = GetSmartFillFunction(game, args, false);
                 double team_1_win_chance = actual_func(game, args);
@@ -424,7 +425,7 @@ namespace bracket_server.Tournaments
                 }
                 return team_1_win_chance;
             }
-            if(TeamIsUnderdogWithBetterOdds(game.Competitor2))
+            if(TeamIsUnderdogWithBetterOdds(game.PredictedCompetitor2))
             {
                 var actual_func = GetSmartFillFunction(game, args, false);
                 // if favored, do nothing. this is rare.
@@ -443,8 +444,8 @@ namespace bracket_server.Tournaments
 
         private void DecrementUnderdogGameCount(Game game)
         {
-            DecrementUnderdogGameCount(game.Competitor1);
-            DecrementUnderdogGameCount(game.Competitor2);
+            DecrementUnderdogGameCount(game.PredictedCompetitor1);
+            DecrementUnderdogGameCount(game.PredictedCompetitor2);
         }
         private void DecrementUnderdogGameCount(TournamentCompetitor competitor)
         {
@@ -458,7 +459,7 @@ namespace bracket_server.Tournaments
 
         protected bool OneOfTeamsHasUnderdogWin(Game game)
         {
-            return TeamHasUnderdogWin(game.Competitor1) || TeamHasUnderdogWin(game.Competitor2);
+            return TeamHasUnderdogWin(game.PredictedCompetitor1) || TeamHasUnderdogWin(game.PredictedCompetitor2);
         }
 
         private bool TeamHasUnderdogWin(TournamentCompetitor comp)
@@ -468,7 +469,7 @@ namespace bracket_server.Tournaments
 
         protected bool OneOfTheTeamsIsUnderdogWithFreeWin(Game game)
         {
-            return TeamIsUnderdogWithFreeWin(game.Competitor1) || TeamIsUnderdogWithFreeWin(game.Competitor2);
+            return TeamIsUnderdogWithFreeWin(game.PredictedCompetitor1) || TeamIsUnderdogWithFreeWin(game.PredictedCompetitor2);
         }
 
         private bool TeamIsUnderdogWithFreeWin(TournamentCompetitor comp)
@@ -478,7 +479,7 @@ namespace bracket_server.Tournaments
 
         protected bool OneOfTheTeamsIsUnderdogWithBetterOdds(Game game)
         {
-            return TeamIsUnderdogWithBetterOdds(game.Competitor1) && TeamIsUnderdogWithBetterOdds(game.Competitor2);
+            return TeamIsUnderdogWithBetterOdds(game.PredictedCompetitor1) && TeamIsUnderdogWithBetterOdds(game.PredictedCompetitor2);
         }
 
         private bool TeamIsUnderdogWithBetterOdds(TournamentCompetitor comp)
@@ -489,7 +490,7 @@ namespace bracket_server.Tournaments
 
         protected double SmartPickWinnerFromKenPom(Game game, SmartFillArgs args)
         {
-            double spread = args.KenPom.GetKenPomSpreadDiff(game.Competitor1, game.Competitor2);
+            double spread = args.KenPom.GetKenPomSpreadDiff(game.PredictedCompetitor1, game.PredictedCompetitor2);
             if (spread > args.AutoWinSpread) return 1; // too large of a spread for competitor 1 to lose
             if (spread < -1 * args.AutoWinSpread) return 0; // same but for comp 2
 
@@ -508,9 +509,9 @@ namespace bracket_server.Tournaments
 
         protected double SmartPickWinnerFromSeedData(Game game, SmartFillArgs args)
         {
-            if (game.Competitor1 == null || game.Competitor2 == null) throw new ArgumentException("competitors null");
-            SeedData seed1 = args.SeedData.GetSeedData(game.Competitor1.Seed);
-            SeedData seed2 = args.SeedData.GetSeedData(game.Competitor2.Seed);
+            if (game.PredictedCompetitor1 == null || game.PredictedCompetitor2 == null) throw new ArgumentException("predicted competitors null when smart picking from seed data");
+            SeedData seed1 = args.SeedData.GetSeedData(game.PredictedCompetitor1.Seed);
+            SeedData seed2 = args.SeedData.GetSeedData(game.PredictedCompetitor2.Seed);
             double total_final_four_odds = seed1.FinalFourOdds + seed2.FinalFourOdds;
             double outcome_double = GetRandomDouble(total_final_four_odds);
             return outcome_double;
@@ -534,7 +535,7 @@ namespace bracket_server.Tournaments
 
         internal void ResetForNewSimulation()
         {
-            ChampionshipGame.ClearCompetitorsFromNonBaseGames();
+            ChampionshipGame.ClearPredictionsFromNonBaseGames();
             ResetUnderdogCounters(); // might be double resetting some things which is fine.
         }
 

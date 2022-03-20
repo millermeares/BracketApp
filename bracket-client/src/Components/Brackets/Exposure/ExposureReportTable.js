@@ -1,7 +1,6 @@
 import {v4 as uuid} from 'uuid';
 import {Table} from 'react-bootstrap'
 function ExposureReportTable(report_rounds) { // props is SortedList<Round, RoundReport>. i'm 
-    console.log(report_rounds);
     let rounds = Object.keys(report_rounds);
     let amount_of_teams = report_rounds[rounds[0]].teamAppearances.length
 
@@ -32,10 +31,8 @@ function ExposureReportTable(report_rounds) { // props is SortedList<Round, Roun
 
     let row_column_components = (team_index) => {
         let components = [];
-        console.log(rounds);
         for(let i = 0; i < rounds.length; i++) {
             let appearance = getTeamAppearance(rounds[i], team_index);
-            console.log(appearance);
             components.push(<td key={uuid()}>{team_appearance_string(appearance)}</td>)
         }
         return components;
@@ -48,7 +45,6 @@ function ExposureReportTable(report_rounds) { // props is SortedList<Round, Roun
         </tr>)
     }
 
-    console.log(makeRows())
     return (
         <div>
             <div>Exposure Report</div>

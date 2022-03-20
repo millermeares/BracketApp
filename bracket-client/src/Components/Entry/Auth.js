@@ -81,6 +81,7 @@ export function AuthProvider({ children }) {
         })
     }
 
+    // probably shouldn't be relying on this value. 
     let hasPermission = (permission) => {
         if(!token) return false;
         if(!token.roles) return false;

@@ -1,9 +1,9 @@
 import {useState} from 'react';
 import Team from './Team';
 import '../../Styling/BracketCSS.css'
+import TeamWithPredictions from './TeamWithPredictions';
 
-
-function Game({competitor1, competitor2, id, leftGame, rightGame, className, inBetweenComponent, renderSeed, handleSetWinner, isLeft}) {
+function Game({predictedCompetitor1, predictedCompetitor2, competitor1, competitor2, id, leftGame, rightGame, className, inBetweenComponent, renderSeed, handleSetWinner, isLeft}) {
     // for depth: 
     // 1 is final 4
     // 2 is elite 8
@@ -14,7 +14,19 @@ function Game({competitor1, competitor2, id, leftGame, rightGame, className, inB
     let handleTeamClicked = (teamId) => {
         handleSetWinner(id, teamId);
     }
-    let teamComponent = (team) => {
+    // this syntax might cause nullable issues.
+    let teamComponent = (predictedTeam, actualTeam) => {
+        if(!predictedTeam) {
+            return singleTeamComponent(actualTeam);
+        }
+        if(!actualTeam) {
+            return singleTeamComponent(predictedTeam);
+        }
+        let props = {predictedTeam: {...predictedTeam}, actualTeam: {...actualTeam}, renderSeed: renderSeed, handleTeamClicked: handleTeamClicked, isLeft};
+        return <TeamWithPredictions {...props} />
+    }
+
+    let singleTeamComponent = (team) => {
         let props = {...team, renderSeed: renderSeed, handleTeamClicked: handleTeamClicked ,isLeft};
         return <Team {...props} />
     }
@@ -29,15 +41,19 @@ function Game({competitor1, competitor2, id, leftGame, rightGame, className, inB
     // here's what i'm learning. the in between component is not a viable strategy. 
     // wait maybe. the in between component actually shouldn't affect the horizontal spacing much. 
     // right? i think so
+    if(id == "859e0f2b-bc59-41e6-af48-408b1565c8c0") {
+        console.log(predictedCompetitor1)
+        console.log(predictedCompetitor2)
+    }
     return (
         <li className={className}>
             <ul className="game-wrapper">
                 <li className="game-top">
-                    {teamComponent(competitor1)}
+                    {teamComponent(predictedCompetitor1, competitor1)}
                 </li>
                 {inBetweenComponent} 
                 <li className="game-bottom">
-                    {teamComponent(competitor2)}
+                    {teamComponent(predictedCompetitor2, competitor2)}
                 </li>
             </ul>
         </li>

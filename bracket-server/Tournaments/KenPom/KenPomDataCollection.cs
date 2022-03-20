@@ -18,8 +18,8 @@
 
         public bool BothPartiesHaveKenPom(Game game)
         {
-            if (game.Competitor1 == null || game.Competitor2 == null) throw new ArgumentException("null competitors");
-            return BothPartiesHaveKenPom(game.Competitor1, game.Competitor2);
+            if (game.PredictedCompetitor1 == null || game.PredictedCompetitor2 == null) throw new ArgumentException("null competitors");
+            return BothPartiesHaveKenPom(game.PredictedCompetitor1, game.PredictedCompetitor2);
         }
         public bool BothPartiesHaveKenPom(TournamentCompetitor comp1, TournamentCompetitor comp2)
         {
@@ -30,7 +30,7 @@
 
         public double GetKenPomSpreadDiff(Game game)
         {
-            return GetKenPomSpreadDiff(game.Competitor1, game.Competitor2);
+            return GetKenPomSpreadDiff(game.PredictedCompetitor1, game.PredictedCompetitor2);
         }
 
         public double GetKenPomSpreadDiff(TournamentCompetitor competitor1, TournamentCompetitor competitor2)

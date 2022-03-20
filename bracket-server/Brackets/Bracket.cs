@@ -13,6 +13,8 @@ namespace bracket_server.Brackets
         public bool Completed { get; set; } = false;
         public int ChampTotalPoints { get; set; } = 120;
         public DateTime CreationTime { get; set; }
+        public int Points { get; set; } = 0;
+        public int MaxPoints { get; set; } = 0;
         
         
         public Bracket(Tournament tournament, string id, string name, UserID owner)

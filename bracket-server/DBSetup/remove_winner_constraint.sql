@@ -1,0 +1,2 @@
+ALTER TABLE tournament_game DROP CONSTRAINT game_winner_fk,
+ADD CONSTRAINT game_winner_fk_t FOREIGN KEY(_fk_tournament, _fk_competitor_winner) REFERENCES competitor_tournament(_fk_tournament, competitorID);

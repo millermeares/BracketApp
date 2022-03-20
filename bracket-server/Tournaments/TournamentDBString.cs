@@ -7,12 +7,12 @@ namespace bracket_server.Tournaments
 {
     internal static class TournamentDBString
     {
-        internal static string CreateTournament = 
+        internal static string CreateTournament =
             @"INSERT INTO tournament(tournamentID, name, creator)
             SELECT @tournamentID, @tournamentName, @creator
             WHERE 0=(SELECT COUNT(*) FROM tournament WHERE name=@tournamentName);";
 
-        internal static string InsertRound = 
+        internal static string InsertRound =
             @"INSERT INTO tournament_round(_fk_tournament, round, name)
             VALUES(@tournamentID, @tournamentRound, @roundName);";
 
@@ -22,26 +22,26 @@ namespace bracket_server.Tournaments
             JOIN tournament t ON t._fk_type=_fk_tournamentType
             WHERE t.tournamentID=@tournamentID;";
 
-        internal static string InsertDivision = 
+        internal static string InsertDivision =
             @"INSERT INTO tournament_division(_fk_tournament, divisionName)
             VALUES(@tournamentID, @divisionName);";
 
-        internal static string AllTournaments = 
+        internal static string AllTournaments =
             @"SELECT name, tournamentID, tournamentFinalized, createdTime, _fk_type AS tournamentType from tournament;";
 
-        internal static string GetTournamentTopLevelByID = 
+        internal static string GetTournamentTopLevelByID =
             @"SELECT name, tournamentID, tournamentFinalized, createdTime, _fk_type AS tournamentType FROM tournament WHERE tournamentID=@tournamentID;";
 
-        internal static string DeleteTournament = 
+        internal static string DeleteTournament =
             @"
         DELETE FROM tournament_division WHERE _fk_tournament=@tournamentID;
             ";
 
-        internal static string GetCompetitorsForTournament = 
+        internal static string GetCompetitorsForTournament =
             @"SELECT * FROM competitor_tournament WHERE _fk_tournament=@tournamentID
             ORDER BY _fk_division, _fk_seed;";
 
-        internal static string InsertTournamentCompetitor = 
+        internal static string InsertTournamentCompetitor =
             @"INSERT INTO competitor_tournament(_fk_tournament, _fk_division, _fk_seed, competitorID, competitorName)
             VALUES(@tournamentID, @division, @seed, @competitorID, @competitorName);";
 
@@ -57,7 +57,7 @@ namespace bracket_server.Tournaments
         ORDER BY s.seedID;
             ";
 
-        internal static string UpdateSeedData = 
+        internal static string UpdateSeedData =
             @"
         DELETE FROM seed_data WHERE _fk_seed=@seedID;
         INSERT INTO seed_data(_fk_seed, finalFourOdds, eliteEightOdds)
@@ -65,7 +65,7 @@ namespace bracket_server.Tournaments
             ";
 
 
-        private static string _finalizeTournamentBase = 
+        private static string _finalizeTournamentBase =
             @"
         INSERT INTO tournament_game(_fk_tournament, _fk_division, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame)
         VALUES
@@ -89,7 +89,7 @@ namespace bracket_server.Tournaments
         {
             //(_fk_tournament, _fk_division, _fk_tournamentRound, gameID, _fk_leftGame, _fk_rightGame)
             StringBuilder sb = new StringBuilder();
-            for(int i = 0; i < games.Count; i++)
+            for (int i = 0; i < games.Count; i++)
             {
                 string division_param_name = $"@gameTDivision{i}";
                 string game_round_name = $"@gameTRound{i}";
@@ -100,11 +100,11 @@ namespace bracket_server.Tournaments
                 cmd.AddParameter(game_round_name, games[i].Round);
                 cmd.AddParameter(game_id, games[i].ID);
                 cmd.AddParameter(game_left_id, games[i].LeftGame == null ? null : games[i].LeftGame.ID);
-                
+
 
                 cmd.AddParameter(game_right_id, games[i].RightGame == null ? null : games[i].RightGame.ID);
                 sb.Append($"(@tournamentID, {division_param_name}, {game_round_name}, {game_id}, {game_left_id}, {game_right_id})");
-                if(i != games.Count - 1)
+                if (i != games.Count - 1)
                 {
                     sb.Append(",");
                 }
@@ -117,7 +117,7 @@ namespace bracket_server.Tournaments
             //_fk_competitor, _fk_game
             StringBuilder sb = new StringBuilder();
             List<Game> competitor_games = games.Where(g => g.HasCompetitors()).ToList();
-            for(int i = 0; i < competitor_games.Count; i++)
+            for (int i = 0; i < competitor_games.Count; i++)
             {
                 string game_id = $"@gameCID{i}";
                 cmd.AddParameter(game_id, competitor_games[i].ID);
@@ -130,7 +130,7 @@ namespace bracket_server.Tournaments
 
                 sb.Append($"({competitor_1_id},{game_id}),");
                 sb.Append($"({competitor_2_id},{game_id})");
-                if(i != competitor_games.Count - 1)
+                if (i != competitor_games.Count - 1)
                 {
                     sb.Append(",");
                 }
@@ -138,13 +138,13 @@ namespace bracket_server.Tournaments
             return sb.ToString();
         }
 
-        internal static string InsertStringParam = 
+        internal static string InsertStringParam =
             @"
         UPDATE string_params SET endDate=now(6) WHERE paramKey=@key AND endDate=@maxDate;
         INSERT INTO string_params(paramKey, paramValue)
         VALUES(@key, @value);
 ";
-        internal static string GetStringParam = 
+        internal static string GetStringParam =
             @"SELECT paramvalue FROM string_params WHERE paramKey=@key AND endDate=@maxDate;";
 
         private static string GetBracketBase =
@@ -156,13 +156,13 @@ namespace bracket_server.Tournaments
         FROM user_bracket b 
         JOIN tournament t ON t.tournamentID = b._fk_tournament
         JOIN tournament_game g ON g._fk_tournament=t.tournamentID
-        LEFT OUTER JOIN game_participant p ON p._fk_game=g.gameID
+        LEFT OUTER JOIN game_participant p ON p._fk_game=g.gameID AND g._fk_leftGame IS NULL AND g._fk_rightGame IS NULL
         LEFT OUTER JOIN competitor_tournament c ON c.competitorID=p._fk_competitor AND t.tournamentID=c._fk_tournament
         LEFT OUTER JOIN bracket_game_prediction bgp ON g.gameID=bgp._fk_game AND bgp._fk_bracket=b.bracketID
         WHERE b.bracketID={0}
         ORDER BY g._fk_tournamentRound, gameDivision, g.gameID;";
 
-        internal static string LatestBracketForUserString = 
+        internal static string LatestBracketForUserString =
             @"
         SELECT bracketID FROM user_bracket b 
         WHERE b._fk_user=@userID
@@ -191,19 +191,19 @@ namespace bracket_server.Tournaments
             @"INSERT INTO user_bracket(_fk_user, _fk_tournament, bracketID, creationTime)
             VALUES(@userID, @tournamentID, @bracketID, now(6));";
 
-        internal static string CompleteBracket = 
+        internal static string CompleteBracket =
         @"
         UPDATE user_bracket SET completed=TRUE, completionTime=now(6)
         WHERE _fk_user=@userID AND _fk_tournament=@tournamentID AND bracketID=@bracketID;
         ";
 
-        private static string _insertPickChangesBase = 
+        private static string _insertPickChangesBase =
             @"
         INSERT INTO bracket_game_prediction(_fk_bracket, _fk_tournament, _fk_game, _fk_competitor, pickTime, isSmartPick)
         VALUES
         {0};";
 
-        private static string _deletePickChangesBase = 
+        private static string _deletePickChangesBase =
             @"
         DELETE FROM bracket_game_prediction WHERE (_fk_bracket, _fk_game) IN ({0});
         ";
@@ -211,7 +211,7 @@ namespace bracket_server.Tournaments
         private static string MakeInsertPickChangesString(List<BracketPickChange> changes, DbCommand cmd)
         {
             StringBuilder sb_val = new StringBuilder();
-            for(int i = 0; i < changes.Count; i++)
+            for (int i = 0; i < changes.Count; i++)
             {
                 string p_bracket_name = $"@IBracketPick{i}";
                 string p_comp_name = $"@ICompPick{i}";
@@ -224,7 +224,7 @@ namespace bracket_server.Tournaments
                 cmd.AddParameter(p_tournament_name, changes[i].TournamentID);
                 cmd.AddParameter(p_smart_pick, changes[i].IsSmartPick);
                 sb_val.Append($"({p_bracket_name}, {p_tournament_name}, {p_game_name}, {p_comp_name}, now(6),{p_smart_pick})");
-                if(i != changes.Count - 1)
+                if (i != changes.Count - 1)
                 {
                     sb_val.Append(",");
                 }
@@ -242,7 +242,7 @@ namespace bracket_server.Tournaments
                 cmd.AddParameter(p_bracket_name, changes[i].BracketID);
                 cmd.AddParameter(p_game_name, changes[i].GameID);
                 sb_val.Append($"({p_bracket_name},{p_game_name})");
-                if(i != changes.Count - 1)
+                if (i != changes.Count - 1)
                 {
                     sb_val.Append(",");
                 }
@@ -263,22 +263,36 @@ namespace bracket_server.Tournaments
             {
                 sb.Append(MakeInsertPickChangesString(insert_changes, cmd));
             }
-            
+
             return sb.ToString();
         }
 
         internal static string GetBracketSummaryForUser =
             @"
-        SELECT b.bracketID, b.creationTime, b.completionTime, t.name AS tournamentName,competitorName   FROM user_bracket b
-        JOIN tournament t ON t.tournamentID=b._fk_tournament
-        JOIN (
-	        SELECT MAX(round) AS champRound, _fk_tournamentType FROM tournament_round GROUP BY _fk_tournamentType
-        ) maxRound ON maxRound._fk_tournamentType=t._fk_type
-        JOIN tournament_game g ON t.tournamentID=g._fk_tournament AND g._fk_tournamentRound=maxRound.champRound
-        JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND g.gameID=bgp._fk_game
-        JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID AND c.competitorID=bgp._fk_competitor
-        WHERE b.completed IS TRUE AND b._fk_user=@userID
-        ORDER BY b.completionTime DESC;";
+        SELECT bracketID, creationTime, completionTime, tournamentName, pointsEarned, trueMax, potentialLost, 
+        maxRound, trueMax-potentialLost AS bracketMax, c.competitorName AS champName FROM 
+        (
+        SELECT b.bracketID, b.creationTime, b.completionTime, t.tournamentID, t.name AS tournamentName, 
+        SUM(IF(bgp._fk_competitor=g._fk_competitor_winner, r.rewardPoints, 0)) AS 'pointsEarned', SUM(r.rewardPoints) AS 'trueMax', 
+        SUM(IF(team_loss._fk_competitor IS NULL, 0, r.rewardPoints)) AS 'potentialLost', MAX(r.round) AS maxRound
+        FROM user_bracket b
+                JOIN tournament t ON t.tournamentID=b._fk_tournament
+                JOIN tournament_game g ON t.tournamentID=g._fk_tournament
+                JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND g.gameID=bgp._fk_game
+                JOIN tournament_round r ON t._fk_type=r._fk_tournamentType AND r.round=g._fk_tournamentRound
+		        LEFT OUTER JOIN (
+                #todo: i want to add constraints to this - as of now, this subquery will go across all tournaments all time. not just ones that user is in. that seems bad. 
+			        SELECT g.gameID, g._fk_tournamentRound, gp._fk_competitor, g._fk_tournament FROM tournament_game g
+			        JOIN game_participant gp ON gp._fk_game=g.gameID AND g._fk_competitor_winner<>gp._fk_competitor
+			        WHERE g._fk_competitor_winner IS NOT NULL
+                ) team_loss ON g._fk_tournament=team_loss._fk_tournament AND g._fk_tournamentRound >= team_loss._fk_tournamentRound AND bgp._fk_competitor=team_loss._fk_competitor
+                WHERE b.completed IS TRUE AND b._fk_user=@userID
+	        GROUP BY b.bracketID
+        ) summary
+        JOIN tournament_game champ_game ON champ_game._fk_tournament=summary.tournamentID AND champ_game._fk_tournamentRound=summary.maxRound
+        JOIN bracket_game_prediction bgp ON summary.bracketID=bgp._fk_bracket AND bgp._fk_game=champ_game.gameID
+        JOIN competitor_tournament c ON bgp._fk_competitor=c.competitorID AND c._fk_tournament=champ_game._fk_tournament
+        ORDER BY summary.completionTime DESC;";
 
 
         private static string KenPomColumns = @"kpm.offensiveEfficiency, kpm.defensiveEfficiency, kpm.overallEfficiency, kpm.tempo, IF(kpm.overallEfficiency IS NULL, FALSE, TRUE) AS 'hasKenPom'";
@@ -286,7 +300,7 @@ namespace bracket_server.Tournaments
 
         internal static string KenPomDataForTournamentCompetitor()
         {
-            return 
+            return
             $@"SELECT {KenPomColumns}
             FROM ken_pom_data kpm WHERE kpm._fk_tournament=@tournamentID AND kpm._fk_competitor=@competitorID;";
         }
@@ -308,7 +322,7 @@ namespace bracket_server.Tournaments
         VALUES(@competitorID, @tournamentID, @offensiveEfficiency, @defensiveEfficiency, @overallEfficiency, @tempo);
         ";
 
-        private static string TotalBracketBase = 
+        private static string TotalBracketBase =
             @"SELECT COUNT(bracketID) FROM user_bracket b WHERE b.completed IS TRUE AND _fk_tournament=@tournamentID {0};";
 
         internal static string BracketCountForUserTournament()
@@ -321,7 +335,7 @@ namespace bracket_server.Tournaments
             return string.Format(TotalBracketBase, string.Empty);
         }
 
-        
+
         private static string ExposureSummaryBase = @"
         SELECT {0}, g._fk_tournamentRound, COUNT(bgp._fk_game) AS 'appearances' FROM tournament t
         JOIN competitor_tournament c ON c._fk_tournament=t.tournamentID
@@ -349,9 +363,40 @@ namespace bracket_server.Tournaments
 	        c._fk_seed, c.competitorName, c.competitorID, c._fk_division AS competitorDivision
         FROM tournament t
         JOIN tournament_game g ON g._fk_tournament=t.tournamentID
-        LEFT OUTER JOIN game_participant p ON p._fk_game=g.gameID
+        LEFT OUTER JOIN game_participant p ON p._fk_game=g.gameID AND g._fk_leftGame IS NULL AND g._fk_rightGame IS NULL
         LEFT OUTER JOIN competitor_tournament c ON c.competitorID=p._fk_competitor AND t.tournamentID=c._fk_tournament
         WHERE t.tournamentID=@tournamentID
         ORDER BY g._fk_tournamentRound, gameDivision, g.gameID;";
+
+        internal static string CompetitorsInGame()
+        {
+            return string.Format(@"
+            SELECT {0} FROM game_participant gp
+            JOIN tournament_game g ON g.gameID = gp._fk_game
+            JOIN competitor_tournament c ON c.competitorID = gp._fk_competitor AND g._fk_tournament = c._fk_tournament
+            WHERE gp._fk_game = @gameID; ", CompetitorColumns);
+        }
+
+        internal static string RoundOfGame = 
+            @"SELECT _fk_tournamentRound FROM tournament_game WHERE gameID=@gameID;";
+
+
+        
+
+        // for now, only doing winner. if doing game participant, then use commented out SQL probably.
+        internal static string SaveGameOutcome =
+            @"
+        DELETE gp FROM game_participant gp
+        JOIN tournament_game g ON g.gameID=gp._fk_game AND g._fk_tournament= @tournamentID
+        WHERE gp._fk_competitor= @otherCompetitorID AND g._fk_tournamentRound > @roundOfGame;
+        UPDATE tournament_game SET _fk_competitor_winner=@competitorID 
+        WHERE _fk_tournament=@tournamentID AND gameID=@gameID;
+        INSERT INTO game_participant(_fk_competitor, _fk_game)
+        SELECT @competitorID, gameID
+        FROM tournament_game
+        WHERE _fk_tournament = @tournamentID AND @gameID IN(_fk_leftGame, _fk_rightGame);
+        UPDATE tournament_game SET _fk_competitor_winner=NULL 
+        WHERE _fk_tournament=@tournamentID AND _fk_tournamentRound > @roundOfGame AND _fk_competitor_winner=@otherCompetitorID;
+        ";
     }
 }

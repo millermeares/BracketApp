@@ -5,22 +5,24 @@ import Container from 'react-bootstrap/Container'
 import { useAuth } from '../Entry/Auth';
 import { Outlet } from 'react-router-dom';
 import {v4 as uuid} from 'uuid';
-
-let getRoleDependentComponents = (auth) => {
-    let roles = auth.getRoles();
+import api from '../Services/api';
+import {useState, useEffect} from 'react';
+import { toHaveAccessibleDescription } from '@testing-library/jest-dom/dist/matchers';
+let getRoleDependentComponents = (menuOptions) => {
+    
     let components = []
-    for(let i =0; i < roles.length; i++) {
-        let role_link = "/" + roles[i].name;
+    for(let i =0; i < menuOptions.length; i++) {
         components.push(
         <Nav key={uuid()} className="me-auto">
-            <Link to={role_link}>{roles[i].name}</Link>
+            <Link to={menuOptions[i].route}>{menuOptions[i].name}</Link>
         </Nav>)
     }
     return components;
 }
 
 function Dashboard() {
-    
+    const [menuOptions, setMenuOptions] = useState(null);
+
     let navigate = useNavigate();
     let auth = useAuth();
     let logout = (e) => {
@@ -29,21 +31,31 @@ function Dashboard() {
             navigate("../");
         });
     }
-    let role_dependent_components = getRoleDependentComponents(auth);
+
+    useEffect(() => {
+        if(!menuOptions) {
+            api.post("/usermenuoptions", auth.token).then(response => {
+                if(!response.data.valid) {
+                    alert(response.data.payload);
+                    return;
+                }
+                setMenuOptions(response.data.payload);
+            }).catch(error => {
+                console.log(error);
+            });
+        }
+    })
+
+    if(!menuOptions) {
+        return <div>Loading...</div>
+    }
+
+    let dependent_components = getRoleDependentComponents(menuOptions);
     return (
         <div className="dashboard">
             <Navbar bg="light">
                 <Container fluid>
-                    <Nav className="me-auto">
-                        <Link to="/filloutbracket">Fill Out Bracket</Link>
-                    </Nav>
-                    <Nav className="me-auto">
-                        <Link to="/completedbrackets">Completed Brackets</Link>
-                    </Nav>
-                    <Nav className="me-auto">
-                        <Link to="/userexposurereport">Exposure Report</Link>
-                    </Nav>
-                    {role_dependent_components}
+                    {dependent_components}
                     <Nav>
                         <Navbar.Text className="justify-content-end">
                             <button onClick={logout}>Logout</button>

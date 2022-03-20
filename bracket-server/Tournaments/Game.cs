@@ -44,8 +44,9 @@ namespace bracket_server.Tournaments
             _competitor1 = temp;
         }
         public TournamentCompetitor? Winner { get; set; } = null;
-        
-        
+        public TournamentCompetitor? PredictedWinner { get; set; } = null;
+        public TournamentCompetitor? PredictedCompetitor1 { get; set; } = null;
+        public TournamentCompetitor? PredictedCompetitor2 { get; set; } = null;
         
 
         internal void SkeletonChildrenGames(int iterations)
@@ -94,13 +95,27 @@ namespace bracket_server.Tournaments
         {
             return Competitor1 != null;
         }
+
+        internal bool HasPredictedCompetitor1()
+        {
+            return PredictedCompetitor1 != null;
+        }
         internal bool HasCompetitor2()
         {
             return Competitor2 != null;
         }
+        internal bool HasPredictedCompetitor2()
+        {
+            return PredictedCompetitor2 != null;
+        }
         internal bool HasCompetitors()
         {
             return Competitor1 != null && Competitor2 != null;
+        }
+
+        internal bool HasPredictedCompetitors()
+        {
+            return HasPredictedCompetitor1() && HasPredictedCompetitor2();
         }
 
         internal bool HasChildGames()
@@ -165,9 +180,16 @@ namespace bracket_server.Tournaments
             return LeftGame != null && LeftGame.ID == gameID;
         }
 
+        // todo: there's a bug in this - maybe? 
+        // if someone manually picks games up to champ game, some there can be empty games but this still return strue.
         public bool FullyPopulated()
         {
-            if(Competitor1 == null || Competitor2 == null)
+            // base game. 
+            if(LeftGame == null && RightGame == null)
+            {
+                return Competitor1 != null && Competitor2 != null;
+            }
+            if(PredictedCompetitor1 == null || PredictedCompetitor2 == null)
             {
                 return false;
             }
@@ -200,17 +222,29 @@ namespace bracket_server.Tournaments
             return false;
         }
 
-        internal void ClearCompetitorsFromNonBaseGames()
+        public bool HasPredictedCompetitor(string competitorID)
         {
-            Winner = null;
+            if (PredictedCompetitor1 != null && PredictedCompetitor1.ID == competitorID) return true;
+            if (PredictedCompetitor2 != null && PredictedCompetitor2.ID == competitorID) return true;
+            return false;
+        }
+
+        internal void ClearPredictionsFromNonBaseGames()
+        {
+            PredictedWinner = null;
             if(LeftGame == null || RightGame == null)
             {
                 return;
             }
-            Competitor1 = null;
-            Competitor2 = null;
-            LeftGame.ClearCompetitorsFromNonBaseGames();
-            RightGame.ClearCompetitorsFromNonBaseGames();
+            PredictedCompetitor1 = null;
+            PredictedCompetitor2 = null;
+            LeftGame.ClearPredictionsFromNonBaseGames();
+            RightGame.ClearPredictionsFromNonBaseGames();
+        }
+
+        internal bool HasPredictedWinner()
+        {
+            return PredictedWinner != null;
         }
 
         

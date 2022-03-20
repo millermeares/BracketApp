@@ -11,6 +11,7 @@ import SeedDataConfig from './SeedDataConfig';
 import {Nav, Container, Row, Col} from 'react-bootstrap';
 import KenPomConfig from './KenPomConfig';
 import SmartFillExposureReport from '../Brackets/Exposure/SmartFillExposureReport';
+import EnterTournamentOutcome from './TournamentOutcome/EnterTournamentOutcome';
 function Admin() {
     let auth = useAuth();
     let navigate = useNavigate();
@@ -37,6 +38,7 @@ function Admin() {
                             <Link to="seeddataconfig">SeedData Config</Link>
                             <Link to="kenpomconfig">KenPom Config</Link>
                             <Link to="smartfilleval">Test Smart Fill</Link>
+                            <Link to="gameoutcomes">Enter Game Outcomes</Link>
                         </Nav>
                     </Col>
                     <Col>
@@ -51,6 +53,7 @@ function Admin() {
                 <Route path="seeddataconfig" element={<SeedDataConfig />} />
                 <Route path="kenpomconfig" element={<KenPomConfig />} />
                 <Route path="smartfilleval" element={<SmartFillExposureReport />} />
+                <Route path="gameoutcomes" element={<EnterTournamentOutcome />} />
             </Routes>
         </div>
         
