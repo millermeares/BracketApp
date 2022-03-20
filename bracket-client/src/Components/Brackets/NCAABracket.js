@@ -172,19 +172,32 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
         return games.slice(0, games.length / 2);
     }
 
-    let makeFinalist1 = (team) => {
-        let props = {...team, className: "round semi-final", nameClass: "game-left game-top", handleSetWinner: handleSetChampWinner}
+    let makeFinalist1 = (predictedTeam, actualTeam, predictionWrong) => {
+        let props = {predictedTeam:{...predictedTeam}, actualTeam: {...actualTeam}, predictionWrong:predictionWrong, 
+            className: "round semi-final", nameClass: "game-left game-top", handleSetWinner: handleSetChampWinner}
         return <Finalist {...props}/>
     }
 
-    let makeFinalist2 = (team) => {
-        let props = {...team, className: "round semi-final", nameClass: "game-right game-top", handleSetWinner: handleSetChampWinner}
+    let makeFinalist2 = (predictedTeam, actualTeam, predictionWrong) => {
+        let props = {predictedTeam:{...predictedTeam}, actualTeam: {...actualTeam}, predictionWrong:predictionWrong, 
+            className: "round semi-final", nameClass: "game-right game-top", handleSetWinner: handleSetChampWinner}
         return <Finalist {...props}/>
     }
 
-    let makeWinner = (team) => {
-        let props = {...team, className: "round finals", nameClass: "game final"}
+    let makeWinner = (predictedTeam, actualTeam, predictionWrong) => {
+        let props = {predictedTeam:{...predictedTeam}, actualTeam: {...actualTeam}, predictionWrong:predictionWrong, 
+        className: "round finals", nameClass: "game final"}
         return <Finalist {...props}/>
+    }
+
+    let predicted_champ_already_lost = () => {
+        if(compareCompetitors(champGame.predictedWinner, champGame.predictedCompetitor1)) {
+            return champGame.competitor1PredictionWrong;
+        }
+        if(compareCompetitors(champGame.predictedWinner, champGame.predictedCompetitor2)) {
+            return champGame.competitor2PredictionWrong;
+        }
+        return false;
     }
 
     return (
@@ -209,9 +222,9 @@ function NCAABracket({ id, name, eventStart, eventEnd, championshipGame, beforeS
                 {makeRoundComponents(firstHalf(semi_finals_games), true, true, true)}
             </ul>
 
-            {makeFinalist1(champGame.predictedCompetitor1)}
-            {makeWinner(champGame.predictedWinner)}
-            {makeFinalist2(champGame.predictedCompetitor2)}
+            {makeFinalist1(champGame.predictedCompetitor1, champGame.competitor1, champGame.competitor1PredictionWrong)}
+            {makeWinner(champGame.predictedWinner, champGame.winner, predicted_champ_already_lost())}
+            {makeFinalist2(champGame.predictedCompetitor2, champGame.competitor2, champGame.competitor2PredictionWrong)}
 
             <ul className='round round-4'>
                 {makeRoundComponents(secondHalf(semi_finals_games), false, true, true)}

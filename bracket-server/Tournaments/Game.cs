@@ -10,7 +10,9 @@ namespace bracket_server.Tournaments
         public Game? LeftGame { get; set; } = null;
         public Game? RightGame { get; set; } = null;
 
-        private TournamentCompetitor? _competitor1 = null; 
+        private TournamentCompetitor? _competitor1 = null;
+        public bool Competitor1PredictionWrong { get; set; } = false;
+        public bool Competitor2PredictionWrong { get; set; } = false;
 
         public TournamentCompetitor? Competitor1
         {
@@ -245,6 +247,12 @@ namespace bracket_server.Tournaments
         internal bool HasPredictedWinner()
         {
             return PredictedWinner != null;
+        }
+
+        internal TournamentCompetitor GetLoser()
+        {
+            if (!HasWinner() || Competitor1 == null || Competitor2 == null) throw new ArgumentException("shouldn't ask for loser if no winner and competitors");
+            return Winner.ID == Competitor1.ID ? Competitor2 : Competitor1;
         }
 
         

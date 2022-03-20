@@ -16,7 +16,7 @@ namespace bracket_server.Tournaments
         private Dictionary<string, TournamentCompetitor> _competitorDictionary = new Dictionary<string,TournamentCompetitor>();
 
         private Dictionary<string, int> _smartFillUnderdogFreeWins = new Dictionary<string, int>();
-
+        private Dictionary<string, int> _teamRoundLoss = new Dictionary<string, int>();
 
         private int UnderdogRunTeams = 0;
         public static Tournament New(string name)
@@ -34,7 +34,15 @@ namespace bracket_server.Tournaments
             _gameDictionary.Add(game.ID, game);
             AddCompetitorsToDictIfThere(game);
             // if left game or right game is not null, set setcompetitor from the winner of those games.
-            SetCompetitorsFromChildWinners(game);
+            SetCompetitorsFromChildWinners(game); // not sure this is still a thing. probably isn't. leaving it here bc it works fine.
+            NoteLoserIfAlreadyHappened(game);
+        }
+
+        private void NoteLoserIfAlreadyHappened(Game game)
+        {
+            if (!game.HasWinner()) return;
+            TournamentCompetitor loser = game.GetLoser();
+            _teamRoundLoss.Add(loser.ID, game.Round);
         }
 
         private void SetCompetitorsFromChildWinners(Game game)
@@ -51,7 +59,6 @@ namespace bracket_server.Tournaments
                 game.Competitor2 = right_game.Winner;
             }
         }
-
         
 
         private void AddCompetitorsToDictIfThere(Game game)
@@ -76,7 +83,11 @@ namespace bracket_server.Tournaments
             return string.IsNullOrEmpty(ID);
         }
 
-
+        private bool TeamAlreadyLost(TournamentCompetitor competitor, int gameRound)
+        {
+            if(!_teamRoundLoss.ContainsKey(competitor.ID)) return false;
+            return gameRound > _teamRoundLoss[competitor.ID];
+        } 
         private void ApplyPick(BracketPick p)
         {
             if(p.GameID == ChampionshipGame.ID)
@@ -92,10 +103,12 @@ namespace bracket_server.Tournaments
             if(parent_game.IsLeft(p.GameID))
             {
                 parent_game.PredictedCompetitor1 = _competitorDictionary[p.CompetitorID];
+                parent_game.Competitor1PredictionWrong = TeamAlreadyLost(_competitorDictionary[p.CompetitorID], parent_game.Round);
             } else
             {
                 // right
                 parent_game.PredictedCompetitor2= _competitorDictionary[p.CompetitorID];
+                parent_game.Competitor2PredictionWrong = TeamAlreadyLost(_competitorDictionary[p.CompetitorID], parent_game.Round);
             }
         }
 

@@ -187,6 +187,10 @@ body {
   .champ-wrapper {
       list-style:none;
   }
+  .team.wrong-pick {
+    color:red;
+    text-decoration:line-through;
+  }
 
  
   /* source: https://blog.codepen.io/2018/02/16/need-make-tournament-bracket/*/
