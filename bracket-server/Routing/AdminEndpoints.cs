@@ -1,8 +1,11 @@
-﻿using bracket_server.Routing.APIArgumentHelpers;
+﻿using bracket_server.Brackets;
+using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
 using bracket_server.Tournaments.Exposure;
 using bracket_server.Tournaments.SmartFill;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 using UserManagement.UserModels;
 
 namespace bracket_server.Routing
@@ -178,6 +181,7 @@ namespace bracket_server.Routing
             }
         }
 
+        // todo: Use this method to kick off a background task to update the "currentScore" and "potentialScore" for all brackets. 
         public static IResult SaveGameOutcome(OutcomeAuthToken outcome_token, IUserDAL user_dal, ITournamentDAL tournament_dal)
         {
             try
@@ -190,6 +194,54 @@ namespace bracket_server.Routing
             catch(Exception ex)
             {
                 return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
+        public static IResult UpdateBracketResultsAsync(AuthToken auth, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            try
+            {
+                UserID user_id = ConfirmAuth(auth, user_dal);
+                if (user_id.IsEmpty()) return Results.Unauthorized();
+                string tournament = tournament_dal.GetActiveBracketingTournamentID();
+                UpdateTournamentBracketResultsAsync(tournament, tournament_dal);
+                return EmptyValidResult();
+            }
+            catch (Exception ex)
+            {
+                return ResultFromException(user_dal.GetDataAccess(), ex);
+            }
+        }
+
+        internal static void UpdateTournamentBracketResultsAsync(string tournament, ITournamentDAL tournament_dal)
+        {
+            Task.Run(() =>
+            {   
+                try
+                {
+                    UpdateTournamentBracketResults(tournament, tournament_dal);
+                }
+                catch (Exception e)
+                {
+                    tournament_dal.GetDataAccess().RecordError(e);
+                }
+            });
+        }
+
+        internal static void UpdateTournamentBracketResults(string tournament, ITournamentDAL tournament_dal)
+        {
+            // todo: use tournament id to page over brackets. can't get them all at once probably. 
+            int page = 0;
+            List<BracketRecord> brackets = tournament_dal.GetPagedBracketRecordsForTournament(tournament, page);
+            while (brackets.Count > 0)
+            {
+                foreach (BracketRecord bracket in brackets)
+                {
+                    BracketPerformance performance = tournament_dal.CalculatePerformanceForBracket(bracket);
+                    tournament_dal.SaveBracketPerformance(performance);
+                }
+                page++;
+                brackets = tournament_dal.GetPagedBracketRecordsForTournament(tournament, page);
             }
         }
 
@@ -211,6 +263,7 @@ namespace bracket_server.Routing
             AddPost("/testsmartfill", TestSmartFill);
             AddGet("/activetournament", GetActiveTournament);
             AddPost("/savegameoutcome", SaveGameOutcome);
+            AddPost("/asyncupdatebracketresults", UpdateBracketResultsAsync);
         }
     }
 }

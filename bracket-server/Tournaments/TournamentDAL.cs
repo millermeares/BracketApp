@@ -2,7 +2,9 @@
 using bracket_server.Tournaments.Exposure;
 using bracket_server.Tournaments.KenPom;
 using MillerAPI.DataAccess;
+using Org.BouncyCastle.Bcpg;
 using System.Data.Common;
+using UserManagement.UserModels;
 using static UserManagement.UserDataAccess.DBHelpers;
 namespace bracket_server.Tournaments
 {
@@ -271,8 +273,10 @@ namespace bracket_server.Tournaments
         {
             return _dataAccess.DoQuery(conn =>
             {
-                using DbCommand cmd = GetCommand(TournamentDBString.InsertNewBracket, conn);
+                using DbCommand cmd = GetCommand(TournamentDBString.InsertNewBracket + TournamentDBString.UpsertBracketPerformance, conn);
                 bracket.NewBracketParameters(cmd);
+                cmd.AddParameter("@bracketMax", 1920);
+                cmd.AddParameter("@pointsEarned", 0);
                 return cmd.ExecuteNonQuery() > 0;
             });
         }
@@ -488,27 +492,14 @@ namespace bracket_server.Tournaments
             });
         }
 
-        // This query is currently very high latency. Probably need to pre-calculate the score information for each bracket in order to efficiently show them.
-        // Or... only retrieve the scores for a specific small subset of brackets? Possibly? Thnking like 50.
-        public List<BracketPerformanceSummary> BracketPerformanceSummariesForUser(UserID userID)
-        {
-            return _dataAccess.DoQuery(conn =>
-            {
-                using DbCommand cmd = GetCommand(TournamentDBString.GetBracketPerformanceSummaryForUser, conn);
-                cmd.AddParameter("@userID", userID.ID);
-                using DbDataReader reader = cmd.ExecuteReader();
-                return ListFromReader(reader, BracketPerformanceSummaryFromReader);
-            });
-        }
-
-        public List<BracketSummary> BracketSummariesForUser(UserID userID)
+        public List<BracketPerformanceSummary> BracketSummariesForUser(UserID userID)
         {
             return _dataAccess.DoQuery(conn =>
             {
                 using DbCommand cmd = GetCommand(TournamentDBString.GetBracketSummaryForUser, conn);
                 cmd.AddParameter("@userID", userID.ID);
                 using DbDataReader reader = cmd.ExecuteReader();
-                return ListFromReader(reader, BracketSummaryFromReader);
+                return ListFromReader(reader, BracketPerformanceSummaryFromReader);
             });
         }
 
@@ -519,10 +510,9 @@ namespace bracket_server.Tournaments
             DateTime completionTime = GetDatetime(reader, "completionTime");
             string tournamentName = GetString(reader, "tournamentName");
             string competitorName = GetString(reader, "champName");
-            int currentPoints = GetInt(reader, "pointsEarned");
-            int maxPoints = GetInt(reader, "bracketMax");
+            BracketPerformance performance = BracketPerformanceFromReader(reader);
             string tournamentID = GetString(reader, "tournamentID");
-            return new BracketPerformanceSummary(bracketID, tournamentName, tournamentID, completionTime, creationTime, competitorName, maxPoints, currentPoints);
+            return new BracketPerformanceSummary(bracketID, tournamentName, tournamentID, completionTime, creationTime, competitorName, performance);
         }
 
         private BracketSummary BracketSummaryFromReader(DbDataReader reader)
@@ -534,6 +524,69 @@ namespace bracket_server.Tournaments
             string competitorName = GetString(reader, "champName");
             string tournamentID = GetString(reader, "tournamentID");
             return new BracketSummary(bracketID, tournamentName, tournamentID, completionTime, creationTime, competitorName);
+        }
+
+        public BracketPerformance CalculatePerformanceForBracket(BracketRecord bracket)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.CalculateBracketPerformance, conn);
+                cmd.AddParameter("@bracketID", bracket.ID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    int pointsEarned = GetInt(reader, "pointsEarned");
+                    int potentialLost = GetInt(reader, "potentialLost");
+                    int trueMax = GetInt(reader, "trueMax");
+                    string bracketID = GetString(reader, "bracketID");
+                    int bracketMax = trueMax - potentialLost;
+                    return new BracketPerformance(bracketID, pointsEarned, bracketMax);
+                }
+                throw new Exception($"Exception calculating bracket performance for bracket {bracket.ID}");
+            });
+        }
+
+        public BracketPerformance SaveBracketPerformance(BracketPerformance performance)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.UpsertBracketPerformance, conn);
+                performance.BracketResultParameters(cmd);
+                int rows = cmd.ExecuteNonQuery();
+                return performance;
+            });
+        }
+
+        private BracketPerformance BracketPerformanceFromReader(DbDataReader reader)
+        {
+            string bracketID = GetString(reader, "_fk_bracket");
+            int currentPoints = GetInt(reader, "pointsEarned");
+            int maxPoints = GetInt(reader, "bracketMax");
+            return new BracketPerformance(bracketID, currentPoints, maxPoints);
+        }
+
+        public List<BracketRecord> GetPagedBracketRecordsForTournament(string tournament, int pageNumber)
+        {
+            string cmdString = TournamentDBString.MakePaged(pageNumber, 10, TournamentDBString.AllCompletedBracketRecordsForTournament);
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(cmdString, conn);
+                cmd.AddParameter("@tournamentID", tournament);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return ListFromReader(reader, BracketRecordFromReader);
+            });
+        }
+
+        private BracketRecord BracketRecordFromReader(DbDataReader reader)
+        {
+            string tournament = GetString(reader, "_fk_tournament");
+            int champTotalPoints = GetInt(reader, "champTotalPoints");
+            string id = GetString(reader, "BracketID");
+            bool completed = GetBool(reader, "completed");
+            DateTime creationTime= GetDatetime(reader, "creationTime");
+            DateTime completionTime = GetDatetime(reader, "completionTime");
+            UserID owner = new UserID(GetString(reader, "_fk_user"));
+            return new BracketRecord(tournament, id, owner, completed, champTotalPoints, creationTime, completionTime);
         }
 
         public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID)
@@ -726,7 +779,7 @@ namespace bracket_server.Tournaments
                 cmd.AddParameter("@gameID", gameID);
                 return ScalarIntFromCommand(cmd);
             });
-        } 
+        }
 
     }
 }

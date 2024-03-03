@@ -1,6 +1,7 @@
 ﻿using bracket_server.Brackets;
 using MillerAPI.DataAccess;
 using System.Data.Common;
+using System.Net.NetworkInformation;
 using System.Text;
 
 namespace bracket_server.Tournaments
@@ -189,7 +190,8 @@ namespace bracket_server.Tournaments
 
         internal static string InsertNewBracket =
             @"INSERT INTO user_bracket(_fk_user, _fk_tournament, bracketID, creationTime)
-            VALUES(@userID, @tournamentID, @bracketID, now(6));";
+            VALUES(@userID, @tournamentID, @bracketID, now(6));
+            ";
 
         internal static string CompleteBracket =
         @"
@@ -267,36 +269,11 @@ namespace bracket_server.Tournaments
             return sb.ToString();
         }
 
-        internal static string GetBracketPerformanceSummaryForUser =
-            @"
-        SELECT bracketID, creationTime, completionTime, tournamentName, pointsEarned, trueMax, potentialLost, tournamentID,
-        maxRound, trueMax-potentialLost AS bracketMax, c.competitorName AS champName FROM 
-        (
-        SELECT b.bracketID, b.creationTime, b.completionTime, t.tournamentID, t.name AS tournamentName, 
-        SUM(IF(bgp._fk_competitor=g._fk_competitor_winner, r.rewardPoints, 0)) AS 'pointsEarned', SUM(r.rewardPoints) AS 'trueMax', 
-        SUM(IF(team_loss._fk_competitor IS NULL, 0, r.rewardPoints)) AS 'potentialLost', MAX(r.round) AS maxRound
-        FROM user_bracket b
-                JOIN tournament t ON t.tournamentID=b._fk_tournament
-                JOIN tournament_game g ON t.tournamentID=g._fk_tournament
-                JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND g.gameID=bgp._fk_game
-                JOIN tournament_round r ON t._fk_type=r._fk_tournamentType AND r.round=g._fk_tournamentRound
-		        LEFT OUTER JOIN (
-                #todo: i want to add constraints to this - as of now, this subquery will go across all tournaments all time. not just ones that user is in. that seems bad. 
-			        SELECT g.gameID, g._fk_tournamentRound, gp._fk_competitor, g._fk_tournament FROM tournament_game g
-			        JOIN game_participant gp ON gp._fk_game=g.gameID AND g._fk_competitor_winner<>gp._fk_competitor
-			        WHERE g._fk_competitor_winner IS NOT NULL
-                ) team_loss ON g._fk_tournament=team_loss._fk_tournament AND g._fk_tournamentRound >= team_loss._fk_tournamentRound AND bgp._fk_competitor=team_loss._fk_competitor
-                WHERE b.completed IS TRUE AND b._fk_user=@userID
-	        GROUP BY b.bracketID
-        ) summary
-        JOIN tournament_game champ_game ON champ_game._fk_tournament=summary.tournamentID AND champ_game._fk_tournamentRound=summary.maxRound
-        JOIN bracket_game_prediction bgp ON summary.bracketID=bgp._fk_bracket AND bgp._fk_game=champ_game.gameID
-        JOIN competitor_tournament c ON bgp._fk_competitor=c.competitorID AND c._fk_tournament=champ_game._fk_tournament
-        ORDER BY summary.completionTime DESC;";
-
         internal static string GetBracketSummaryForUser =
             @"
-        SELECT b.bracketID, b.creationTime, b.completionTime, t.name AS tournamentName, tournamentID, subMaxRound.maxRound AS maxRound, c.competitorName AS champName 
+        SELECT b.bracketID, b.creationTime, b.completionTime, t.name AS tournamentName, 
+            tournamentID, subMaxRound.maxRound AS maxRound, c.competitorName AS champName,
+            br.bracketMax, br.pointsEarned, br._fk_bracket
 		FROM user_bracket b
         JOIN tournament t ON t.tournamentID=b._fk_tournament
         JOIN (
@@ -307,9 +284,35 @@ namespace bracket_server.Tournaments
         JOIN tournament_game champ_game ON champ_game._fk_tournament=t.tournamentID AND champ_game._fk_tournamentRound=subMaxRound.maxRound
         JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND bgp._fk_game=champ_game.gameID
         JOIN competitor_tournament c ON bgp._fk_competitor=c.competitorID AND c._fk_tournament=champ_game._fk_tournament
+        JOIN bracket_result br ON br._fk_bracket=b.bracketID
 		WHERE b._fk_user=@userId
         ORDER BY b.completionTime DESC;
+            ";
 
+        internal static string CalculateBracketPerformance =
+            @"
+        SELECT b.bracketID, SUM(IF(bgp._fk_competitor=g._fk_competitor_winner, r.rewardPoints, 0)) AS 'pointsEarned', SUM(r.rewardPoints) AS 'trueMax', 
+        SUM(IF(team_loss._fk_competitor IS NULL, 0, r.rewardPoints)) AS 'potentialLost'
+        FROM user_bracket b
+        JOIN tournament t ON t.tournamentID=b._fk_tournament
+        JOIN tournament_game g ON t.tournamentID=g._fk_tournament
+        JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND g.gameID=bgp._fk_game
+        JOIN tournament_round r ON t._fk_type=r._fk_tournamentType AND r.round=g._fk_tournamentRound
+		LEFT OUTER JOIN (
+            #todo: i want to add constraints to this - as of now, this subquery will go across all tournaments all time. not just ones that user is in. that seems bad. 
+			SELECT g.gameID, g._fk_tournamentRound, gp._fk_competitor, g._fk_tournament FROM tournament_game g
+			JOIN game_participant gp ON gp._fk_game=g.gameID AND g._fk_competitor_winner<>gp._fk_competitor
+			WHERE g._fk_competitor_winner IS NOT NULL
+        ) team_loss ON g._fk_tournament=team_loss._fk_tournament AND g._fk_tournamentRound >= team_loss._fk_tournamentRound AND bgp._fk_competitor=team_loss._fk_competitor
+        WHERE b.completed IS TRUE AND b.bracketID=@bracketID
+	    GROUP BY b.bracketID;
+            ";
+
+        internal static string UpsertBracketPerformance =
+            @"
+                INSERT IGNORE INTO bracket_result(_fk_bracket, bracketMax, pointsEarned)
+                VALUES(@bracketID, @bracketMax, @pointsEarned)
+                ON DUPLICATE KEY UPDATE bracketMax=@bracketMax AND pointsEarned=@pointsEarned;
             ";
 
 
@@ -416,5 +419,25 @@ namespace bracket_server.Tournaments
         UPDATE tournament_game SET _fk_competitor_winner=NULL 
         WHERE _fk_tournament=@tournamentID AND _fk_tournamentRound > @roundOfGame AND _fk_competitor_winner=@otherCompetitorID;
         ";
+
+        internal static string AllCompletedBracketRecordsForTournament = 
+            @"
+        SELECT _fk_user, _fk_tournament, BracketID, champTotalPoints, completed, creationTime, completionTime
+        FROM user_bracket b
+        WHERE b.completed IS TRUE AND b._fk_tournament=@tournamentID
+        ORDER BY completionTime DESC;
+            ";
+
+        internal static string MakePaged(int pageNum, int pageSize, string baseCommand)
+        {
+            int offset = pageNum * pageSize;
+            baseCommand = baseCommand.Replace(';', ' ');
+            return string.Format(
+                @"
+                {0}
+                LIMIT {1}
+                OFFSET {2};
+            ", baseCommand, pageSize, offset);
+        }
     }
 }

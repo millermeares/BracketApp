@@ -5,12 +5,11 @@
         public int BracketMax { get; set; }
         public int PointsEarned { get; set; }
         public BracketPerformanceSummary(string bracketID, string tournamentName, string tournamentID, DateTime completionDate, 
-            DateTime creationDate, string winnerName, int bracketMax, int pointsEarned)
+            DateTime creationDate, string winnerName, BracketPerformance performance)
             : base(bracketID, tournamentName, tournamentID, completionDate, creationDate, winnerName)
         {
-            BracketMax = bracketMax;
-            PointsEarned = pointsEarned;
+            BracketMax = performance.BracketMax;
+            PointsEarned = performance.PointsEarned;
         }
-
     }
 }

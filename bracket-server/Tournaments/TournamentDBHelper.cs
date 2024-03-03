@@ -76,5 +76,12 @@ namespace bracket_server.Tournaments
             cmd.AddParameter("@tempo", data.Tempo);
             cmd.AddParameter("@overallEfficiency", data.OverallEfficiency);
         }
+
+        public static void BracketResultParameters(this BracketPerformance performance, DbCommand cmd)
+        {
+            cmd.AddParameter("@bracketID", performance.BracketID);
+            cmd.AddParameter("@pointsEarned", performance.PointsEarned);
+            cmd.AddParameter("@bracketMax", performance.BracketMax);
+        }
     }
 }

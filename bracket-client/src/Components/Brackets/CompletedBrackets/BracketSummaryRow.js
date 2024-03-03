@@ -10,8 +10,8 @@ function BracketSummaryRow({bracketID, winnerName, tournamentName, creationDate,
         <tr>
             <td>{tournamentName}</td>
             <td>{winnerName}</td>
-            {/* <td>{pointsEarned}</td>
-            <td>{bracketMax}</td> */}
+            <td>{pointsEarned}</td>
+            <td>{bracketMax}</td>
             <td>{get_date_string(completionDate)}</td>
             <td><Button onClick={() => onViewBracketClick(bracketID)}>View</Button></td>
         </tr>

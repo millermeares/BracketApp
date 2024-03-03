@@ -1,6 +1,9 @@
 ﻿using bracket_server.Brackets;
 using bracket_server.Tournaments.Exposure;
 using bracket_server.Tournaments.KenPom;
+using Microsoft.AspNetCore.Connections.Features;
+using System.Runtime.ConstrainedExecution;
+
 namespace bracket_server.Tournaments
 {
     public interface ITournamentDAL
@@ -32,8 +35,7 @@ namespace bracket_server.Tournaments
         public bool FinishBracket(Bracket bracket);
 
         public bool SavePickChanges(List<BracketPickChange> pick_changes);
-        public List<BracketSummary> BracketSummariesForUser(UserID userID);
-        public List<BracketPerformanceSummary> BracketPerformanceSummariesForUser(UserID userID);
+        public List<BracketPerformanceSummary> BracketSummariesForUser(UserID userID);
         public bool SaveKenpomData(KenPomDataReference data);
         public KenPomData KenPomDataForCompetitor(string tournamentID, string competitor);
         public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID);
@@ -45,5 +47,8 @@ namespace bracket_server.Tournaments
         public TournamentCompetitor? OtherCompetitorInGame(Pick p);
         public List<TournamentCompetitor> CompetitorsInGame(string gameID);
         public bool SaveOutcome(Pick p);
+        public BracketPerformance CalculatePerformanceForBracket(BracketRecord bracket);
+        public BracketPerformance SaveBracketPerformance(BracketPerformance performance);
+        public List<BracketRecord> GetPagedBracketRecordsForTournament(string tournament, int pageNumber);
     }
 }

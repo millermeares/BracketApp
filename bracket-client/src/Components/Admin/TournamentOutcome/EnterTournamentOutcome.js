@@ -2,6 +2,8 @@ import api from '../../Services/api';
 import {useEffect, useState} from 'react';
 import NCAABracket from '../../Brackets/NCAABracket'
 import {useAuth} from '../../Entry/Auth';
+import {Button} from 'react-bootstrap'
+
 let modifyTournamentObjectForAdmin = (tournament) => {
     setPredictionsEqualToReality(tournament.championshipGame);
 }
@@ -67,10 +69,30 @@ function EnterTournamentOutcome({tournamentid}) {
         });
     }
 
+    let triggerBracketResultsUpdate = () => {
+        let success = window.confirm("Are you sure you want to trigger an update of bracket results? This is a long process and should be done infrequently.")
+        if (!success) {
+            return;
+        } 
+        api.post("/asyncupdatebracketresults", auth.token).then(response => {
+            if(!response.data.valid) {
+                alert(response.data.payload);
+                return;
+            }
+            alert("Asynchronous update of bracket results triggered.");
+        }).catch(error => {
+            console.log(error);
+        })
+    }
+
     // okay so now we're going to set predictedCompetitors to competitors where we can. 
     let bracket_props = {...tournament, beforeSetWinnerPromise: beforeSetWinnerPromise}
     return (
-        <NCAABracket {...bracket_props} />
+        <div>
+            <Button onClick={triggerBracketResultsUpdate}>Trigger Bracket Results Update</Button>
+            <NCAABracket {...bracket_props} />
+        </div>
+        
     )
 }
 
