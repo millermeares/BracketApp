@@ -16,6 +16,7 @@ namespace bracket_server.BracketUsers
 
         private static void ConditionalAddFillOutBracketMenuOption(ITournamentDAL dal, ref MenuOptions options)
         {
+            options.Add(new MenuOption("/filloutbracket", "Fill out bracket"));
             return; // todo. probably look up the active active tournament id and make sure that it hasn't started yet.
         }
     }

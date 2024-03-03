@@ -488,6 +488,19 @@ namespace bracket_server.Tournaments
             });
         }
 
+        // This query is currently very high latency. Probably need to pre-calculate the score information for each bracket in order to efficiently show them.
+        // Or... only retrieve the scores for a specific small subset of brackets? Possibly? Thnking like 50.
+        public List<BracketPerformanceSummary> BracketPerformanceSummariesForUser(UserID userID)
+        {
+            return _dataAccess.DoQuery(conn =>
+            {
+                using DbCommand cmd = GetCommand(TournamentDBString.GetBracketPerformanceSummaryForUser, conn);
+                cmd.AddParameter("@userID", userID.ID);
+                using DbDataReader reader = cmd.ExecuteReader();
+                return ListFromReader(reader, BracketPerformanceSummaryFromReader);
+            });
+        }
+
         public List<BracketSummary> BracketSummariesForUser(UserID userID)
         {
             return _dataAccess.DoQuery(conn =>
@@ -499,7 +512,7 @@ namespace bracket_server.Tournaments
             });
         }
 
-        private BracketSummary BracketSummaryFromReader(DbDataReader reader)
+        private BracketPerformanceSummary BracketPerformanceSummaryFromReader(DbDataReader reader)
         {
             string bracketID = GetString(reader, "bracketID");
             DateTime creationTime = GetDatetime(reader, "creationTime");
@@ -509,7 +522,18 @@ namespace bracket_server.Tournaments
             int currentPoints = GetInt(reader, "pointsEarned");
             int maxPoints = GetInt(reader, "bracketMax");
             string tournamentID = GetString(reader, "tournamentID");
-            return new BracketSummary(bracketID, tournamentName, tournamentID, completionTime, creationTime, competitorName, maxPoints, currentPoints);
+            return new BracketPerformanceSummary(bracketID, tournamentName, tournamentID, completionTime, creationTime, competitorName, maxPoints, currentPoints);
+        }
+
+        private BracketSummary BracketSummaryFromReader(DbDataReader reader)
+        {
+            string bracketID = GetString(reader, "bracketID");
+            DateTime creationTime = GetDatetime(reader, "creationTime");
+            DateTime completionTime = GetDatetime(reader, "completionTime");
+            string tournamentName = GetString(reader, "tournamentName");
+            string competitorName = GetString(reader, "champName");
+            string tournamentID = GetString(reader, "tournamentID");
+            return new BracketSummary(bracketID, tournamentName, tournamentID, completionTime, creationTime, competitorName);
         }
 
         public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID)

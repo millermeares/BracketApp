@@ -267,7 +267,7 @@ namespace bracket_server.Tournaments
             return sb.ToString();
         }
 
-        internal static string GetBracketSummaryForUser =
+        internal static string GetBracketPerformanceSummaryForUser =
             @"
         SELECT bracketID, creationTime, completionTime, tournamentName, pointsEarned, trueMax, potentialLost, tournamentID,
         maxRound, trueMax-potentialLost AS bracketMax, c.competitorName AS champName FROM 
@@ -293,6 +293,24 @@ namespace bracket_server.Tournaments
         JOIN bracket_game_prediction bgp ON summary.bracketID=bgp._fk_bracket AND bgp._fk_game=champ_game.gameID
         JOIN competitor_tournament c ON bgp._fk_competitor=c.competitorID AND c._fk_tournament=champ_game._fk_tournament
         ORDER BY summary.completionTime DESC;";
+
+        internal static string GetBracketSummaryForUser =
+            @"
+        SELECT b.bracketID, b.creationTime, b.completionTime, t.name AS tournamentName, tournamentID, subMaxRound.maxRound AS maxRound, c.competitorName AS champName 
+		FROM user_bracket b
+        JOIN tournament t ON t.tournamentID=b._fk_tournament
+        JOIN (
+			SELECT r._fk_tournamentType, MAX(r.round) as maxRound
+            FROM tournament_round r
+            GROUP BY r._fk_tournamentType
+        ) subMaxRound ON subMaxRound._fk_tournamentType=t._fk_type
+        JOIN tournament_game champ_game ON champ_game._fk_tournament=t.tournamentID AND champ_game._fk_tournamentRound=subMaxRound.maxRound
+        JOIN bracket_game_prediction bgp ON b.bracketID=bgp._fk_bracket AND bgp._fk_game=champ_game.gameID
+        JOIN competitor_tournament c ON bgp._fk_competitor=c.competitorID AND c._fk_tournament=champ_game._fk_tournament
+		WHERE b._fk_user=@userId
+        ORDER BY b.completionTime DESC;
+
+            ";
 
 
         private static string KenPomColumns = @"kpm.offensiveEfficiency, kpm.defensiveEfficiency, kpm.overallEfficiency, kpm.tempo, IF(kpm.overallEfficiency IS NULL, FALSE, TRUE) AS 'hasKenPom'";

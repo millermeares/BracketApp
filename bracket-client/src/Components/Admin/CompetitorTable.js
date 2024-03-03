@@ -20,8 +20,8 @@ function CompetitorTable({competitors, allowDelete, handleDeleteCompetitor}) {
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Seed</th>
                     <th>Division</th>
+                    <th>Seed</th>
                     {allowDelete ? <th>Delete</th> : null}
                 </tr>
             </thead>

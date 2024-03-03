@@ -56,8 +56,6 @@ namespace bracket_server.Routing
                 {
                     return Results.Unauthorized();
                 }
-                //todo: come up with criteria.it's PROBABLY based on the tournament start/end date.
-                return ErrorResult("this shouldn't be happening right now."); 
                 string tournament_id = tournament_dal.GetActiveBracketingTournamentID(); 
                 if(string.IsNullOrEmpty(tournament_id))
                 {

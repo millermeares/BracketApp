@@ -46,7 +46,7 @@ function UserCompletedBracketsTable() {
     }
 
     // if components has a length of 0, put a message and maybe an exposure? 
-    if(brackets.length == 0) {
+    if(brackets.length === 0) {
         return <div>You didn't make any brackets this year. Try again next year!</div>
     }
     return (
@@ -55,8 +55,6 @@ function UserCompletedBracketsTable() {
                 <tr>
                     <th>Tournament</th>
                     <th>Winner</th>
-                    <th>Points Earned</th>
-                    <th>Max Points</th>
                     <th>Completion Date</th>
                     <th>View</th>
                 </tr>

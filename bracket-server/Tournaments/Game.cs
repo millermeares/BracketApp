@@ -251,7 +251,12 @@ namespace bracket_server.Tournaments
 
         internal TournamentCompetitor GetLoser()
         {
-            if (!HasWinner() || Competitor1 == null || Competitor2 == null) throw new ArgumentException("shouldn't ask for loser if no winner and competitors");
+            // this is only accessed when HasWinner is already checked. This will break if the results are not entered round-by-round.
+            if (!HasWinner() || Competitor1 == null || Competitor2 == null) {
+
+                throw new ArgumentException($"Asking for loser if no winner and competitors in game {ID} in {Division} division and {Round} round");
+            }
+                
             return Winner.ID == Competitor1.ID ? Competitor2 : Competitor1;
         }
 

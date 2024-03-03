@@ -33,6 +33,7 @@ namespace bracket_server.Tournaments
 
         public bool SavePickChanges(List<BracketPickChange> pick_changes);
         public List<BracketSummary> BracketSummariesForUser(UserID userID);
+        public List<BracketPerformanceSummary> BracketPerformanceSummariesForUser(UserID userID);
         public bool SaveKenpomData(KenPomDataReference data);
         public KenPomData KenPomDataForCompetitor(string tournamentID, string competitor);
         public List<CompetitorKenPomData> AllCompetitorKenPomDataForTournament(string tournamentID);

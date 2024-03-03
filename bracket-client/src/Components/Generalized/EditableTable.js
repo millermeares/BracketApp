@@ -31,7 +31,8 @@ function EditableTable({columns, data, saveRowFunction, keyField}) {
                 keyField: keyField,
                 mode: 'click', 
                 blurToSave: true,
-                afterSaveCell: handleSaveRow
+                afterSaveCell: handleSaveRow, 
+                autoSelectText: true
                 })}
         />
     )

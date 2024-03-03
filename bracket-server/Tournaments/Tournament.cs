@@ -47,7 +47,13 @@ namespace bracket_server.Tournaments
 
         private void SetCompetitorsFromChildWinners(Game game)
         {
-            if (!game.HasChildGames() || game.HasCompetitors()) return;
+            
+            if (!game.HasChildGames())
+            {
+                game.PredictedCompetitor1 = game.Competitor1;
+                game.PredictedCompetitor2 = game.Competitor2;
+            }
+            if (game.HasCompetitors()) return;
             Game left_game = _gameDictionary[game.LeftGame.ID];
             if(!game.HasCompetitor1() && left_game.HasWinner())
             {

@@ -1,6 +1,8 @@
-﻿using bracket_server.Routing.APIArgumentHelpers;
+﻿using bracket_server.Brackets;
+using bracket_server.Routing.APIArgumentHelpers;
 using bracket_server.Tournaments;
 using bracket_server.Tournaments.KenPom;
+using Microsoft.Extensions.Primitives;
 
 namespace bracket_server.Routing
 {
@@ -10,37 +12,42 @@ namespace bracket_server.Routing
         {
             try
             {
-                UserID user_id = ConfirmAuth(cat.Token, user_dal);
-                if (user_id.IsEmpty()) return Results.Unauthorized();
-                Tournament tournament = tournament_dal.CreateTournament(user_id, cat.TournamentName);
-                if(tournament.IsEmpty())
+                for(int i = 0; i < 10000; i++)
                 {
-                    return ErrorResult($"tournament name already used {cat.TournamentName}");
+                    SimulateAndSubmitBracket(cat.Token, user_dal, tournament_dal);
                 }
-                List<NewTournamentCompetitor> fake_competitors = GetFakeCompetitors();
-                foreach(NewTournamentCompetitor competitor in fake_competitors)
-                {
-                    TournamentCompetitor comp = tournament_dal.CreateTournamentCompetitor(tournament.ID, competitor);
-                    if(comp.IsEmpty())
-                    {
-                        throw new Exception("failed to create tournament competitor");
-                    }
-                }
-                TournamentIDAuthToken tournament_token = new TournamentIDAuthToken()
-                {
-                    Token = cat.Token,
-                    TournamentID = tournament.ID
-                };
-                IResult result = AdminEndpoints.FinalizeTournament(tournament_token, user_dal, tournament_dal);
-                tournament_dal.InsertActiveBracketingTournamentID(tournament.ID);
-                List<TournamentCompetitor> competitors = tournament_dal.TournamentCompetitorsForTournament(tournament.ID);
-                EnterFakeKenPomRatings(tournament, competitors, tournament_dal);
-                return EmptyValidResult();
+                return GoodResult("hi");
             }
             catch(Exception ex)
             {
                 return ResultFromException(user_dal.GetDataAccess(), ex);
             }
+        }
+
+        public IResult SimulateAndSubmitBracket(AuthToken token, IUserDAL user_dal, ITournamentDAL tournament_dal)
+        {
+            UserID id = user_dal.UserIDFromToken(token);
+            if (id.IsEmpty())
+            {
+                return Results.Unauthorized();
+            }
+            string tournament_id = tournament_dal.GetActiveBracketingTournamentID();
+            if (string.IsNullOrEmpty(tournament_id))
+            {
+                return ErrorResult("tell miller to assign an active tournament");
+            }
+            Bracket bracket = Bracket.GetForNewOrLatestBracketForUser(id, tournament_id, tournament_dal);
+            if (bracket.IsEmpty())
+            {
+                return ErrorResult("an error occurred while creating the bracket");
+            }
+            bracket.SmartFill(tournament_dal);
+            IDAuthToken idAuthToken = new IDAuthToken
+            {
+                Token = token,
+                ID = bracket.ID
+            };
+            return TournamentEndpoints.FinalizeContestEntry(idAuthToken, tournament_dal, user_dal);
         }
 
         private static List<NewTournamentCompetitor> GetFakeCompetitors()
